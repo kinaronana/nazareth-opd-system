@@ -1,0 +1,38 @@
+/* Custom CSS Overrides for Nazareth Hospital OPD Platform */
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: #333333;
+}
+
+/* Customizing the Bootstrap Primary color system to a sharp medical navy */
+.bg-primary, .btn-primary {
+    background-color: #1e40af !important;
+    border-color: #1e40af !important;
+}
+
+.text-primary {
+    color: #1e40af !important;
+}
+
+.btn-outline-primary {
+    color: #1e40af !important;
+    border-color: #1e40af !important;
+}
+
+.btn-outline-primary:hover {
+    background-color: #1e40af !important;
+    color: #ffffff !important;
+}
+
+/* Enhancing standard form label layouts */
+.form-label {
+    font-size: 0.9rem;
+    color: #4b5563;
+}
+
+/* Creating standard shadow rules for consistency */
+.card, .border-shadow-sm {
+    border-radius: 8px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
