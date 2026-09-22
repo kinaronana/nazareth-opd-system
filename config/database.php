@@ -22,11 +22,20 @@ function loadEnvironmentFile(string $path): void
 
 loadEnvironmentFile(dirname(__DIR__) . '/.env');
 
+$productionConfig = [];
+$productionConfigPath = __DIR__ . '/production.php';
+if (is_readable($productionConfigPath)) {
+    $loadedConfig = require $productionConfigPath;
+    if (is_array($loadedConfig)) {
+        $productionConfig = $loadedConfig;
+    }
+}
+
 $settings = [
-    'host' => getenv('OPD_DB_HOST') ?: '',
-    'name' => getenv('OPD_DB_NAME') ?: '',
-    'user' => getenv('OPD_DB_USERNAME') ?: '',
-    'password' => getenv('OPD_DB_PASSWORD') ?: '',
+    'host' => $productionConfig['host'] ?? (getenv('OPD_DB_HOST') ?: ''),
+    'name' => $productionConfig['name'] ?? (getenv('OPD_DB_NAME') ?: ''),
+    'user' => $productionConfig['user'] ?? (getenv('OPD_DB_USERNAME') ?: ''),
+    'password' => $productionConfig['password'] ?? (getenv('OPD_DB_PASSWORD') ?: ''),
 ];
 
 if (in_array('', $settings, true)) {
