@@ -9,16 +9,24 @@ jobs:
   web-deploy:
     name: Sync PHP App
     runs-on: ubuntu-latest
+
     steps:
-    - name: Get latest code
-      uses: actions/checkout@v4
-    
-    - name: Sync files to InfinityFree
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-      with:
-        server: ftpupload.net
-        username: if0_42980405
-        password: purpleprada4
-        local-dir: ./C:\xampp\htdocs\nazareth-opd-system/
-        server-dir: ./htdocs/
-        dangerously-allow-clean-all-remote-files: true
+      - name: Get latest code
+        uses: actions/checkout@v4
+
+      - name: Upload to InfinityFree
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ftpupload.net
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftp
+          port: 21
+          local-dir: ./xampp/htdocs/nazareth-opd-system/
+          server-dir: ./htdocs/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/.github/**
+            **/.env
