@@ -2,7 +2,7 @@
 class Database {
     // Live Production Database Credentials for InfinityFree
     private $host = "ftpupload.net"; 
-    private $db_name = "if0_42980405_XXX"; 
+    private $db_name = "if0_42980405_db_nazareth"; 
     private $username = "if0_42980405"; 
     private $password = "purpleprada4"; 
     public $conn;
