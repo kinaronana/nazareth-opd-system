@@ -1,22 +1,22 @@
 <?php
-// Secure database configuration initialization using strict PDO abstractions
-$host    = 'localhost';
-$db      = 'nazareth_hospital_db';
-$user    = 'root';
-$pass    = ''; // Leave blank if using default XAMPP, otherwise enter your root password
-$charset = 'utf8mb4';
+class Database {
+    // Live Production Database Credentials for InfinityFree
+    private $host = "ftpupload.net"; 
+    private $db_name = "if0_42980405_XXX"; 
+    private $username = "if0_42980405"; 
+    private $password = "purpleprada4"; 
+    public $conn;
 
-$dsn = "mysql:host=$host;dbname=$db;charset=$charset";
-$options = [
-    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION, // Enforces explicit error containment mapping
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,       // Returns records as clean associative arrays
-    PDO::ATTR_EMULATE_PREPARES   => false,                  // Enforces true native prepared statements for security
-];
-
-try {
-    $pdo = new PDO($dsn, $user, $pass, $options);
-} catch (\PDOException $e) {
-    // Terminate process execution without leaking sensitive database structure strings or credentials
-    die("Database Infrastructure Connection Failure: The platform could not interface with the relational layer safely.");
+    public function getConnection() {
+        $this->conn = null;
+        try {
+            $this->conn = new PDO("mysql:host=" . $this->host . ";dbname=" . $this->db_name, $this->username, $this->password);
+            $this->conn->exec("set names utf8");
+            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        } catch(PDOException $exception) {
+            echo "Database Connection Error: " . $exception->getMessage();
+        }
+        return $this->conn;
+    }
 }
 ?>
