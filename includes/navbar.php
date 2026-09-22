@@ -23,12 +23,12 @@
                     <!-- Contextual Link Injector based on active role permissions matrices -->
                     <?php if ($_SESSION['role_name'] === 'Admin'): ?>
                         <li class="nav-item">
-                            <a class="nav-link" href="/nazareth-opd-system/admin/departments/departments.php">
+                            <a class="nav-link" href="/admin/departments/departments.php">
                                 <i class="fa-solid fa-sitemap me-1"></i>Departments
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/nazareth-opd-system/admin/doctors/manage_doctors.php">
+                            <a class="nav-link" href="/admin/doctors/manage_doctors.php">
                                 <i class="fa-solid fa-user-doctor me-1"></i>Physicians
                             </a>
                         </li>
@@ -52,7 +52,7 @@
             <ul class="navbar-nav ms-auto align-items-center">
                 <?php if (isset($_SESSION['user_id'])): ?>
                     <li class="nav-item me-lg-3 mb-2 mb-lg-0">
-                        <a class="btn btn-sm btn-warning fw-bold text-dark px-3 shadow-sm" href="/nazareth-opd-system/admin/dashboard.php">
+                        <a class="btn btn-sm btn-warning fw-bold text-dark px-3 shadow-sm" href="/admin/dashboard.php">
                             <i class="fa-solid fa-gauge me-1"></i>Dashboard
                         </a>
                     </li>
