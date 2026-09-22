@@ -2,7 +2,6 @@
 // Dynamically resolve the absolute root URL of the site whether on localhost or InfinityFree
 $base_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] . "/";
 ?>
-<!-- Your navbar structure with injected dynamic bases -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container-fluid">
     <a class="navbar-brand" href="<?php echo $base_url; ?>admin/dashboard.php">Nazareth OPD</a>
