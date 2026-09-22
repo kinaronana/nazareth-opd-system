@@ -14,6 +14,16 @@ jobs:
       - name: Get latest code
         uses: actions/checkout@v4
 
+      - name: Create production database configuration
+        shell: bash
+        run: |
+          {
+            echo "OPD_DB_HOST=${{ secrets.OPD_DB_HOST }}"
+            echo "OPD_DB_NAME=${{ secrets.OPD_DB_NAME }}"
+            echo "OPD_DB_USERNAME=${{ secrets.OPD_DB_USERNAME }}"
+            echo "OPD_DB_PASSWORD=${{ secrets.OPD_DB_PASSWORD }}"
+          } > .env
+
       - name: Upload to InfinityFree
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:
@@ -24,9 +34,10 @@ jobs:
           port: 21
           local-dir: ./
           server-dir: ./htdocs/
+          state-name: .ftp-deploy-sync-state-live-v2.json
+          log-level: standard
           exclude: |
             **/.git*
             **/.git*/**
             **/node_modules/**
             **/.github/**
-            **/.env
