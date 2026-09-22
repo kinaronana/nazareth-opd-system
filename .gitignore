@@ -1,2 +1,4 @@
 ﻿assets/uploads/*
 !assets/uploads/default-avatar.png
+
+.env
