@@ -19,6 +19,6 @@ jobs:
         server: ftpupload.net
         username: if0_42980405
         password: purpleprada4
-        local-dir: /xampp/htdocs/nazareth-opd-system/
+        local-dir: ./
         server-dir: ./htdocs/
-        
+        dangerously-allow-clean-all-remote-files: true
