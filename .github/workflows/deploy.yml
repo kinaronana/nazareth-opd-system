@@ -17,12 +17,15 @@ jobs:
       - name: Create production database configuration
         shell: bash
         run: |
-          {
-            echo "OPD_DB_HOST=${{ secrets.OPD_DB_HOST }}"
-            echo "OPD_DB_NAME=${{ secrets.OPD_DB_NAME }}"
-            echo "OPD_DB_USERNAME=${{ secrets.OPD_DB_USERNAME }}"
-            echo "OPD_DB_PASSWORD=${{ secrets.OPD_DB_PASSWORD }}"
-          } > .env
+          cat > config/production.php <<'PHP'
+          <?php
+          return [
+              'host' => '${{ secrets.OPD_DB_HOST }}',
+              'name' => '${{ secrets.OPD_DB_NAME }}',
+              'user' => '${{ secrets.OPD_DB_USERNAME }}',
+              'password' => '${{ secrets.OPD_DB_PASSWORD }}',
+          ];
+          PHP
 
       - name: Upload to InfinityFree
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0
@@ -34,7 +37,7 @@ jobs:
           port: 21
           local-dir: ./
           server-dir: ./htdocs/
-          state-name: .ftp-deploy-sync-state-live-v2.json
+          state-name: .ftp-deploy-sync-state-live-v3.json
           log-level: standard
           exclude: |
             **/.git*
