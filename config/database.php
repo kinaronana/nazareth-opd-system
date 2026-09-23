@@ -1,4 +1,8 @@
 <?php
+/**
+ * Loads production database settings without committing credentials.
+ * Environment variables take precedence so deployment secrets can rotate safely.
+ */
 function loadEnvironmentFile(string $path): void
 {
     if (!is_readable($path)) {
@@ -7,6 +11,7 @@ function loadEnvironmentFile(string $path): void
 
     foreach (file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
         $line = trim($line);
+
         if ($line === '' || substr($line, 0, 1) === '#' || strpos($line, '=') === false) {
             continue;
         }
@@ -14,6 +19,7 @@ function loadEnvironmentFile(string $path): void
         [$key, $value] = explode('=', $line, 2);
         $key = trim($key);
         $value = trim($value, " \t\n\r\0\x0B\"'");
+
         if ($key !== '' && getenv($key) === false) {
             putenv($key . '=' . $value);
         }
@@ -22,21 +28,28 @@ function loadEnvironmentFile(string $path): void
 
 loadEnvironmentFile(dirname(__DIR__) . '/.env');
 
-$productionConfig = [];
-$productionConfigPath = __DIR__ . '/production.php';
-if (is_readable($productionConfigPath)) {
-    $loadedConfig = require $productionConfigPath;
-    if (is_array($loadedConfig)) {
-        $productionConfig = $loadedConfig;
+$settings = [
+    'host' => getenv('OPD_DB_HOST') ?: '',
+    'name' => getenv('OPD_DB_NAME') ?: '',
+    'user' => getenv('OPD_DB_USERNAME') ?: '',
+    'password' => getenv('OPD_DB_PASSWORD') ?: '',
+];
+
+// Preserve the existing server-side configuration as a fallback until the
+// deployment workflow provides all four database secrets.
+if (in_array('', $settings, true)) {
+    $productionConfigPath = __DIR__ . '/production.php';
+    $productionConfig = is_readable($productionConfigPath) ? require $productionConfigPath : [];
+
+    if (is_array($productionConfig)) {
+        $settings = [
+            'host' => $productionConfig['host'] ?? '',
+            'name' => $productionConfig['name'] ?? '',
+            'user' => $productionConfig['user'] ?? '',
+            'password' => $productionConfig['password'] ?? '',
+        ];
     }
 }
-
-$settings = [
-    'host' => $productionConfig['host'] ?? (getenv('OPD_DB_HOST') ?: ''),
-    'name' => $productionConfig['name'] ?? (getenv('OPD_DB_NAME') ?: ''),
-    'user' => $productionConfig['user'] ?? (getenv('OPD_DB_USERNAME') ?: ''),
-    'password' => $productionConfig['password'] ?? (getenv('OPD_DB_PASSWORD') ?: ''),
-];
 
 if (in_array('', $settings, true)) {
     http_response_code(503);
