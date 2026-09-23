@@ -9,11 +9,9 @@ jobs:
   web-deploy:
     name: Sync PHP App
     runs-on: ubuntu-latest
-
     steps:
       - name: Get latest code
         uses: actions/checkout@v6
-
       - name: Create production database configuration
         shell: bash
         run: |
@@ -26,7 +24,6 @@ jobs:
               'password' => '${{ secrets.OPD_DB_PASSWORD }}',
           ];
           PHP
-
       - name: Upload the complete application to InfinityFree
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:
@@ -45,4 +42,4 @@ jobs:
             **/.git*/**
             **/node_modules/**
             **/.github/**
-          dangerous-clean-slate: true
+          dangerous-clean-slate: false
