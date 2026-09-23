@@ -45,3 +45,4 @@ jobs:
             **/.git*/**
             **/node_modules/**
             **/.github/**
+          dangerous-clean-slate: true
