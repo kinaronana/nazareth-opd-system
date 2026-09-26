@@ -107,7 +107,7 @@ require_once __DIR__ . '/../includes/navbar.php';
                     <a href="departments/departments.php" class="btn btn-outline-primary text-start p-3 fw-semibold">
                         <i class="fa-solid fa-sitemap me-2"></i>Hospital Departments
                     </a>
-                    <a href="doctors/manage_doctors.php" class="btn btn-outline-primary text-start p-3 fw-semibold disabled">
+                    <a href="doctors/manage_doctors.php" class="btn btn-outline-primary text-start p-3 fw-semibold">
                         <i class="fa-solid fa-user-doctor me-2"></i>Clinical Physicians Directory
                     </a>
                     <a href="patients/manage_patients.php" class="btn btn-outline-primary text-start p-3 fw-semibold">

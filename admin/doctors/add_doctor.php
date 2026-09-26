@@ -196,6 +196,3 @@ require_once $project_root . '/includes/navbar.php';
 <?php
 require_once $project_root . '/includes/footer.php';
 ?>
-<? if (!empty($error)): ?>
-    <div class="alert alert-danger shadow-sm"><i class="fa-solid fa-circle-exclamation me-2"></i><?php echo htmlspecialchars($error); ?></div>
-<? endif; ?>     
