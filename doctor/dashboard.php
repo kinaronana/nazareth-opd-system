@@ -72,10 +72,10 @@ require_once $project_root . '/includes/navbar.php';
         <div class="col-md-12">
             <div class="card bg-white border-0 shadow-sm p-4">
                 <div class="d-flex flex-column flex-md-row align-items-center gap-4">
-                    <img src="/nazareth-opd-system/assets/uploads/<?php echo htmlspecialchars($doctorProfile['profile_photo']); ?>" 
+                    <img src="/assets/uploads/<?php echo htmlspecialchars($doctorProfile['profile_photo']); ?>" 
                          alt="Doctor Avatar" class="rounded-circle shadow-sm border border-light" 
                          style="width: 90px; height: 90px; object-fit: cover;"
-                         onerror="this.src='/nazareth-opd-system/assets/uploads/default-avatar.png';">
+                         onerror="this.src='/assets/uploads/default-avatar.png';">
                     <div class="text-center text-md-start">
                         <h3 class="fw-bold text-primary m-0">Welcome, <?php echo htmlspecialchars($doctorProfile['name']); ?></h3>
                         <p class="text-secondary m-0 fw-semibold"><?php echo htmlspecialchars($doctorProfile['specialization']); ?> &bull; <span class="text-muted"><?php echo htmlspecialchars($doctorProfile['department_name']); ?></span></p>

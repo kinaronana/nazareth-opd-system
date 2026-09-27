@@ -20,6 +20,6 @@ if (ini_get("session.use_cookies")) {
 session_destroy();
 
 // Redirect the client back to the public landing index gateway page
-header("Location: /nazareth-opd-system/index.php");
+header("Location: /index.php");
 exit;
 ?>

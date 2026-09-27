@@ -4,7 +4,7 @@
 // =========================================================================
 
 // Fail-proof absolute mapping anchors directly to your local project root folder
-$project_root = $_SERVER['DOCUMENT_ROOT'] . '/nazareth-opd-system';
+$project_root = dirname(__DIR__, 2);
 
 // Enforce clean, direct path bindings to the core application configs
 require_once $project_root . '/config/database.php';

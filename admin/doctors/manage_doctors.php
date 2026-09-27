@@ -3,11 +3,8 @@
 // BLOCK 1: BACKEND DIRECTORY LOGIC PROCESSING (Absolute Server Root Engine)
 // =========================================================================
 
-// Fail-proof absolute mapping anchors directly to your local project root folder
-$project_root = $_SERVER['DOCUMENT_ROOT'] . '/nazareth-opd-system';
-
-require_once $project_root . '/config/database.php';
-require_once $project_root . '/config/auth_middleware.php';
+require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../../config/auth_middleware.php';
 
 // Enforce strict Administrator authorization clearance tokens [12. Security Features]
 enforceRoleAccess(['Admin']);
@@ -55,8 +52,8 @@ try {
 // =========================================================================
 // BLOCK 2: PRESENTATION GRAPHICS INTERFACE (Safe HTML output context bounds)
 // =========================================================================
-require_once $project_root . '/includes/header.php';
-require_once $project_root . '/includes/navbar.php';
+require_once __DIR__ . '/../../includes/header.php';
+require_once __DIR__ . '/../../includes/navbar.php';
 ?>
 
 <div class="container my-5">
@@ -116,11 +113,11 @@ require_once $project_root . '/includes/navbar.php';
                             <tr>
                                 <td>
                                     <!-- Render securely uploaded avatar portraits using absolute asset endpoints [12. Security Features] -->
-                                    <img src="/nazareth-opd-system/assets/uploads/<?php echo htmlspecialchars($doc['profile_photo']); ?>" 
+                                    <img src="/assets/uploads/<?php echo htmlspecialchars($doc['profile_photo']); ?>" 
                                          alt="Profile Avatar Portrait" 
                                          class="rounded-circle shadow-sm border border-light" 
                                          style="width: 48px; height: 48px; object-fit: cover;"
-                                         onerror="this.src='/nazareth-opd-system/assets/uploads/default-avatar.png';">
+                                         onerror="this.src='/assets/uploads/default-avatar.png';">
                                 </td>
                                 <td>
                                     <span class="fw-bold d-block text-dark"><?php echo htmlspecialchars($doc['doctor_name']); ?></span>
@@ -157,5 +154,5 @@ require_once $project_root . '/includes/navbar.php';
 </div>
 
 <?php 
-require_once $project_root . '/includes/footer.php'; 
+require_once __DIR__ . '/../../includes/footer.php'; 
 ?>
