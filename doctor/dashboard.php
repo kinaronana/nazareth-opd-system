@@ -49,7 +49,7 @@ try {
     // Fetch this doctor's complete appointment clinical roster
     $rosterStmt = $pdo->prepare("
         SELECT a.appointment_id, a.appointment_date, a.appointment_time, a.status, a.reason,
-               p.full_name AS patient_name, p.phone AS patient_phone, p.gender, p.dob
+               p.patient_id, p.full_name AS patient_name, p.phone AS patient_phone, p.gender, p.dob
         FROM appointments a
         INNER JOIN patients p ON a.patient_id = p.patient_id
         WHERE a.doctor_id = ?
@@ -81,7 +81,10 @@ require_once $project_root . '/includes/navbar.php';
                         <p class="text-secondary m-0 fw-semibold"><?php echo htmlspecialchars($doctorProfile['specialization']); ?> &bull; <span class="text-muted"><?php echo htmlspecialchars($doctorProfile['department_name']); ?></span></p>
                         <small class="text-muted font-monospace">Clinical Token: #DOC-00<?php echo $doctor_id; ?></small>
                     </div>
-                    <div class="ms-md-auto d-grid d-md-block gap-2">
+                    <div class="ms-md-auto d-grid d-md-flex gap-2">
+                        <a href="messages.php" class="btn btn-outline-secondary fw-bold">
+                            <i class="fa-solid fa-envelope me-1"></i>Messages
+                        </a>
                         <a href="schedule/manage_schedule.php" class="btn btn-outline-primary fw-bold">
                             <i class="fa-solid fa-calendar-days me-1"></i>Configure Schedule Rules
                         </a>
@@ -141,12 +144,13 @@ require_once $project_root . '/includes/navbar.php';
                         <th>Appointment Slot</th>
                         <th>Chief Complaint / Reason</th>
                         <th class="text-center">Status</th>
+                        <th class="text-center">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (empty($myRoster)): ?>
                         <tr>
-                            <td colspan="6" class="text-center text-muted py-5">
+                            <td colspan="7" class="text-center text-muted py-5">
                                 <i class="fa-solid fa-folder-open fa-2x mb-2 d-block text-secondary"></i>
                                 No patient appointment allocations mapped to your profile yet.
                             </td>
@@ -183,6 +187,16 @@ require_once $project_root . '/includes/navbar.php';
                                     if ($visit['status'] === 'Cancelled') $badge = 'bg-dark';
                                     ?>
                                     <span class="badge <?php echo $badge; ?> px-2 py-1 fw-semibold"><?php echo htmlspecialchars($visit['status']); ?></span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">Actions</button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li><a class="dropdown-item" href="/doctor/records/add_record.php?patient_id=<?php echo (int) $visit['patient_id']; ?>&appointment_id=<?php echo (int) $visit['appointment_id']; ?>"><i class="fa-solid fa-folder-open me-2"></i>Add Medical Record</a></li>
+                                            <li><a class="dropdown-item" href="/doctor/prescriptions/issue.php?patient_id=<?php echo (int) $visit['patient_id']; ?>"><i class="fa-solid fa-file-prescription me-2"></i>Issue Prescription</a></li>
+                                            <li><a class="dropdown-item" href="/doctor/results/add_result.php?patient_id=<?php echo (int) $visit['patient_id']; ?>"><i class="fa-solid fa-flask me-2"></i>Add Test Result</a></li>
+                                        </ul>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

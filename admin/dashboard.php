@@ -116,6 +116,12 @@ require_once __DIR__ . '/../includes/navbar.php';
                     <a href="create_admin.php" class="btn btn-outline-primary text-start p-3 fw-semibold">
                         <i class="fa-solid fa-user-shield me-2"></i>Administrator Accounts
                     </a>
+                    <a href="billing/manage_invoices.php" class="btn btn-outline-primary text-start p-3 fw-semibold">
+                        <i class="fa-solid fa-file-invoice-dollar me-2"></i>Billing &amp; Invoices
+                    </a>
+                    <a href="messages.php" class="btn btn-outline-primary text-start p-3 fw-semibold">
+                        <i class="fa-solid fa-envelope me-2"></i>Support Inbox
+                    </a>
                     <a href="dashboard_reports.php" class="btn btn-outline-dark text-start p-3 fw-semibold">
                         <i class="fa-solid fa-file-invoice-dollar me-2"></i>Analytical Reports (PDF/Excel)
                     </a>
