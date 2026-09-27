@@ -7,7 +7,7 @@ $role = strtolower((string) ($_SESSION['role_name'] ?? ''));
 $dashboardRoutes = [
     'admin' => '/admin/dashboard.php',
     'doctor' => '/doctor/dashboard.php',
-    'patient' => '/appointments/book.php',
+    'patient' => '/patient/dashboard.php',
 ];
 $dashboardUrl = $dashboardRoutes[$role] ?? '/index.php';
 ?>
