@@ -203,6 +203,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const infoBox = document.getElementById('schedule_info_box');
     const submitBtn = document.getElementById('submit_booking_btn');
 
+    if (!deptSelect || !docSelect || !dateInput || !timeInput || !infoBox || !submitBtn) {
+        console.error('Booking page: one or more expected form elements were not found on the page.', {
+            deptSelect, docSelect, dateInput, timeInput, infoBox, submitBtn
+        });
+        return;
+    }
+
     const resetDoctorSelect = function (message) {
         docSelect.innerHTML = '';
         const option = document.createElement('option');
@@ -225,17 +232,20 @@ document.addEventListener('DOMContentLoaded', function () {
     // 1. Department Selection Event Trigger listener
     deptSelect.addEventListener('change', async function () {
         const deptId = this.value;
+        console.log('Department changed to:', deptId);
         resetDoctorSelect('Loading active physicians...');
         docSelect.disabled = true;
         resetBookingControls();
 
         try {
-            const response = await fetch(`book.php?fetch_doctors_by_dept=${encodeURIComponent(deptId)}`);
+            const response = await fetch('book.php?fetch_doctors_by_dept=' + encodeURIComponent(deptId));
+            console.log('Doctor fetch response status:', response.status);
             if (!response.ok) {
-                throw new Error('Unable to load physicians.');
+                throw new Error('Unable to load physicians. HTTP status: ' + response.status);
             }
 
             const data = await response.json();
+            console.log('Doctors received:', data);
             resetDoctorSelect('Choose active physician...');
 
             if (!Array.isArray(data) || data.length === 0) {
@@ -246,11 +256,12 @@ document.addEventListener('DOMContentLoaded', function () {
             data.forEach(function (doc) {
                 const option = document.createElement('option');
                 option.value = doc.doctor_id;
-                option.textContent = `Dr. ${doc.name}`;
+                option.textContent = 'Dr. ' + doc.name;
                 docSelect.appendChild(option);
             });
             docSelect.disabled = false;
         } catch (error) {
+            console.error('Doctor fetch failed:', error);
             resetDoctorSelect('Unable to load physicians.');
             infoBox.textContent = 'Unable to retrieve physicians for this department. Please try again.';
             infoBox.classList.remove('d-none');
@@ -263,7 +274,7 @@ document.addEventListener('DOMContentLoaded', function () {
         resetBookingControls();
 
         try {
-            const response = await fetch(`book.php?fetch_schedule_by_doc=${encodeURIComponent(docId)}`);
+            const response = await fetch('book.php?fetch_schedule_by_doc=' + encodeURIComponent(docId));
             if (!response.ok) {
                 throw new Error('Unable to load schedule.');
             }
@@ -279,7 +290,7 @@ document.addEventListener('DOMContentLoaded', function () {
             scheduleList.className = 'mb-0 ps-3';
             data.forEach(function (sched) {
                 const item = document.createElement('li');
-                item.textContent = `${sched.day}s (${sched.start_time} - ${sched.end_time})`;
+                item.textContent = sched.day + 's (' + sched.start_time + ' - ' + sched.end_time + ')';
                 scheduleList.appendChild(item);
             });
             infoBox.replaceChildren(document.createTextNode('Physician Operating Weekly Schedule Rules:'), scheduleList);
@@ -288,7 +299,8 @@ document.addEventListener('DOMContentLoaded', function () {
             timeInput.disabled = false;
             submitBtn.disabled = false;
         } catch (error) {
-            infoBox.textContent = 'Unable to retrieve this physician’s schedule. Please try again.';
+            console.error('Schedule fetch failed:', error);
+            infoBox.textContent = 'Unable to retrieve this physician\'s schedule. Please try again.';
             infoBox.classList.remove('d-none');
         }
     });
