@@ -26,6 +26,7 @@ $dashboardUrl = $dashboardRoutes[$role] ?? '/index.php';
             <li class="nav-item"><a class="nav-link" href="/admin/doctors/manage_doctors.php">Doctors</a></li>
             <li class="nav-item"><a class="nav-link" href="/admin/manage_appointments.php">Appointments</a></li>
           <?php endif; ?>
+          <li class="nav-item"><a class="nav-link" href="/change_password.php">Change Password</a></li>
           <li class="nav-item"><a class="nav-link" href="/logout.php">Sign out</a></li>
         <?php else: ?>
           <li class="nav-item"><a class="nav-link" href="/register.php">Book Appointment</a></li>

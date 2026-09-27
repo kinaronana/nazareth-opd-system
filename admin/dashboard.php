@@ -113,6 +113,9 @@ require_once __DIR__ . '/../includes/navbar.php';
                     <a href="patients/manage_patients.php" class="btn btn-outline-primary text-start p-3 fw-semibold">
                         <i class="fa-solid fa-users me-2"></i>Patient Registry Logs
                     </a>
+                    <a href="create_admin.php" class="btn btn-outline-primary text-start p-3 fw-semibold">
+                        <i class="fa-solid fa-user-shield me-2"></i>Administrator Accounts
+                    </a>
                     <a href="dashboard_reports.php" class="btn btn-outline-dark text-start p-3 fw-semibold">
                         <i class="fa-solid fa-file-invoice-dollar me-2"></i>Analytical Reports (PDF/Excel)
                     </a>
