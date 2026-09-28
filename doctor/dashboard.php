@@ -190,7 +190,7 @@ require_once $project_root . '/includes/navbar.php';
                                 </td>
                                 <td class="text-center">
                                     <div class="dropdown">
-                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">Actions</button>
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false">Actions</button>
                                         <ul class="dropdown-menu dropdown-menu-end">
                                             <li><a class="dropdown-item" href="/doctor/records/add_record.php?patient_id=<?php echo (int) $visit['patient_id']; ?>&appointment_id=<?php echo (int) $visit['appointment_id']; ?>"><i class="fa-solid fa-folder-open me-2"></i>Add Medical Record</a></li>
                                             <li><a class="dropdown-item" href="/doctor/prescriptions/issue.php?patient_id=<?php echo (int) $visit['patient_id']; ?>"><i class="fa-solid fa-file-prescription me-2"></i>Issue Prescription</a></li>

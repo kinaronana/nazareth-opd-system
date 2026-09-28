@@ -8,6 +8,6 @@
     </footer>
 
     <!-- Bootstrap 5 JavaScript Engine Bundle featuring integrated Popper layout tools via secure CDN -->
-    <script src="https://jsdelivr.net"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
