@@ -65,11 +65,18 @@ if (isset($_GET['fetch_schedule_by_doc'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_book_appointment'])) {
     $doctor_id        = (int)$_POST['doctor_id'];
     $appointment_date = $_POST['appointment_date'];
-    $appointment_time = $_POST['appointment_time'];
+    $appointment_time = trim($_POST['appointment_time']);
     $reason           = trim($_POST['reason']);
 
+    // Accept HH:MM or HH:MM:SS, then store as HH:MM:00 (hours and minutes only).
+    if (preg_match('/^([01][0-9]|2[0-3]):([0-5][0-9])(:[0-5][0-9])?$/', $appointment_time, $timeParts)) {
+        $appointment_time = $timeParts[1] . ':' . $timeParts[2] . ':00';
+    } else {
+        $appointment_time = '';
+    }
+
     if (empty($doctor_id) || empty($appointment_date) || empty($appointment_time)) {
-        $error = "Please fill in all mandatory appointment scheduling fields.";
+        $error = "Please fill in all mandatory fields and enter the time as hours and minutes (e.g. 09:30).";
     } else {
         try {
             // Verify if the slot matches the doctor's weekly shift settings parameters
@@ -174,7 +181,8 @@ require_once $project_root . '/includes/navbar.php';
                     <!-- Step 4: Time block mapping -->
                     <div class="mb-3">
                         <label class="form-label fw-bold"><i class="fa-solid fa-clock me-2 text-primary"></i>4. Select Target Time Slot <span class="text-danger">*</span></label>
-                        <input type="time" name="appointment_time" class="form-control" disabled id="appointment_time" required>
+                        <input type="time" name="appointment_time" class="form-control" disabled id="appointment_time" step="60" placeholder="HH:MM" pattern="([01][0-9]|2[0-3]):[0-5][0-9]" title="Enter the time as hours and minutes, e.g. 09:30" required>
+                        <div class="form-text">Hours and minutes only (e.g. 09:30).</div>
                     </div>
 
                     <!-- Step 5: Clinical reason -->
@@ -228,6 +236,15 @@ document.addEventListener('DOMContentLoaded', function () {
         submitBtn.disabled = true;
         infoBox.classList.add('d-none');
     };
+
+    // Keep the time slot to hours and minutes only (strip any seconds the browser adds).
+    const trimSeconds = function () {
+        if (timeInput.value && timeInput.value.length > 5) {
+            timeInput.value = timeInput.value.substring(0, 5);
+        }
+    };
+    timeInput.addEventListener('input', trimSeconds);
+    timeInput.addEventListener('change', trimSeconds);
 
     // 1. Department Selection Event Trigger listener
     deptSelect.addEventListener('change', async function () {
