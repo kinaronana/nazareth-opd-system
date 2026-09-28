@@ -7,6 +7,20 @@ if (session_status() === PHP_SESSION_NONE) {
 
 $error = '';
 
+require_once __DIR__ . '/config/google_auth.php';
+$googleEnabled = googleConfigured();
+
+$googleMessages = [
+    'unavailable' => 'Google sign-in is not available right now.',
+    'cancelled'   => 'Google sign-in was cancelled.',
+    'failed'      => 'Google sign-in could not be completed. Please try again.',
+    'unverified'  => 'Your Google email address could not be verified.',
+    'inactive'    => 'This account is inactive. Please contact hospital administration.',
+];
+if (isset($_GET['google'], $googleMessages[$_GET['google']])) {
+    $error = $googleMessages[$_GET['google']];
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
@@ -155,9 +169,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <div class="text-center text-muted small mb-3">OR</div>
                 <div class="d-grid mb-3">
-                    <button type="button" class="btn btn-outline-secondary fw-semibold py-2" disabled title="Coming soon">
-                        <i class="fa-brands fa-google me-2"></i>Sign in with Google
-                    </button>
+                    <?php if ($googleEnabled): ?>
+                        <a href="/google_login.php" class="btn btn-outline-secondary fw-semibold py-2">
+                            <i class="fa-brands fa-google me-2"></i>Sign in with Google
+                        </a>
+                    <?php else: ?>
+                        <button type="button" class="btn btn-outline-secondary fw-semibold py-2" disabled title="Google sign-in has not been configured yet">
+                            <i class="fa-brands fa-google me-2"></i>Sign in with Google
+                        </button>
+                    <?php endif; ?>
                 </div>
                 <div class="text-center small">
                     <span class="text-muted">Don't have an account?</span>

@@ -2,3 +2,5 @@
 !assets/uploads/default-avatar.png
 
 .env
+
+config/google_config.php
