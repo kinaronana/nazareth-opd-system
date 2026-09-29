@@ -40,7 +40,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $stmt = $pdo->prepare("INSERT INTO messages (sender_id, receiver_id, subject, body) VALUES (?, ?, ?, ?)");
             $stmt->execute([$myUserId, $receiver_id, $subject, $body]);
-            notifyUser($pdo, $receiver_id, "New message: " . $subject, '/patient/messages.php');
+
+            $roleStmt = $pdo->prepare("SELECT r.role_name FROM users u INNER JOIN roles r ON u.role_id = r.role_id WHERE u.user_id = ?");
+            $roleStmt->execute([$receiver_id]);
+            $receiverRole = $roleStmt->fetchColumn();
+            $inboxLink = ['Doctor' => '/doctor/messages.php', 'Admin' => '/admin/messages.php'][$receiverRole] ?? '/patient/messages.php';
+
+            notifyUser($pdo, $receiver_id, "New message: " . $subject, $inboxLink);
             logActivity($pdo, $myUserId, 'Sent a message: ' . $subject, 'envelope');
             $success = 'Message sent successfully.';
         } catch (Exception $e) {
