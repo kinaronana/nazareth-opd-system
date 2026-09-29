@@ -16,6 +16,42 @@ $error = '';
 $success = '';
 $searchQuery = '';
 
+// DELETE OPERATION: remove a patient account and every record tied to it.
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_patient_id'], $_POST['delete_user_id'])) {
+    $patient_id = (int) $_POST['delete_patient_id'];
+    $user_id = (int) $_POST['delete_user_id'];
+
+    try {
+        $pdo->beginTransaction();
+
+        // Tables that may not exist yet on every environment are wrapped individually.
+        foreach (['medical_records', 'prescriptions', 'test_results', 'invoices'] as $table) {
+            try {
+                $pdo->prepare("DELETE FROM $table WHERE patient_id = ?")->execute([$patient_id]);
+            } catch (Exception $e) {
+                // Table not migrated on this environment yet; nothing to clean up there.
+            }
+        }
+        foreach ([['messages', 'sender_id'], ['messages', 'receiver_id'], ['notifications', 'user_id'], ['activity_log', 'user_id']] as [$table, $column]) {
+            try {
+                $pdo->prepare("DELETE FROM $table WHERE $column = ?")->execute([$user_id]);
+            } catch (Exception $e) {
+            }
+        }
+        $pdo->prepare("DELETE FROM appointments WHERE patient_id = ?")->execute([$patient_id]);
+        $pdo->prepare("DELETE FROM patients WHERE patient_id = ?")->execute([$patient_id]);
+        $pdo->prepare("DELETE FROM users WHERE user_id = ?")->execute([$user_id]);
+
+        $pdo->commit();
+        $success = 'Patient account and all associated records have been permanently removed.';
+    } catch (Exception $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        $error = 'Could not delete this patient. Please try again.';
+    }
+}
+
 // Handle real-time patient search filtering strings
 if (isset($_GET['search'])) {
     $searchQuery = trim($_GET['search']);
@@ -72,6 +108,9 @@ require_once $project_root . '/includes/navbar.php';
         </div>
     </div>
 
+    <?php if ($success): ?><div class="alert alert-success"><?php echo htmlspecialchars($success); ?></div><?php endif; ?>
+    <?php if ($error): ?><div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div><?php endif; ?>
+
     <div class="row mb-4 align-items-center">
         <div class="col-md-6">
             <h3 class="fw-bold text-primary"><i class="fa-solid fa-users me-2"></i>Outpatient Tracking Registry</h3>
@@ -106,12 +145,13 @@ require_once $project_root . '/includes/navbar.php';
                         <th>Residential Address</th>
                         <th class="text-center">Age/Gender</th>
                         <th class="text-center" style="width: 10%;">System Status</th>
+                        <th class="text-center" style="width: 8%;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (empty($patientsList)): ?>
                         <tr>
-                            <td colspan="6" class="text-center text-muted py-5">
+                            <td colspan="7" class="text-center text-muted py-5">
                                 <i class="fa-solid fa-folder-open fa-2x mb-2 d-block text-secondary"></i>
                                 No outpatient matching filters are registered in system archives.
                             </td>
@@ -146,6 +186,15 @@ require_once $project_root . '/includes/navbar.php';
                                     <span class="badge <?php echo ($patient['status'] === 'Active') ? 'bg-success' : 'bg-danger'; ?>">
                                         <?php echo $patient['status']; ?>
                                     </span>
+                                </td>
+                                <td class="text-center">
+                                    <form method="POST" onsubmit="return confirm('Permanently delete this patient account and ALL of their appointments, medical records, prescriptions, test results, invoices and messages? This cannot be undone.');">
+                                        <input type="hidden" name="delete_patient_id" value="<?php echo (int) $patient['patient_id']; ?>">
+                                        <input type="hidden" name="delete_user_id" value="<?php echo (int) $patient['user_id']; ?>">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete patient">
+                                            <i class="fa-solid fa-user-minus"></i>
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
