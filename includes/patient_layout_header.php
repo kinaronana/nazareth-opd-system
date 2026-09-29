@@ -71,6 +71,7 @@ $navItems = [
         .patient-sidebar {
             width: 250px; flex-shrink: 0; background: #14213d; color: #cfd6e4;
             display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+            z-index: 1045;
         }
         .patient-sidebar .brand { padding: 1.25rem 1.25rem 1rem; color: #fff; }
         .patient-sidebar .brand strong { color: #4dabf7; }
@@ -88,14 +89,33 @@ $navItems = [
             display: flex; align-items: center; justify-content: space-between; gap: 1rem;
         }
         .patient-topbar .search-box { max-width: 420px; width: 100%; }
+        .sidebar-toggle-btn { display: none; border: 0; background: none; font-size: 1.3rem; color: #14213d; }
+        .sidebar-backdrop { display: none; }
         .badge-dot {
             position: absolute; top: -4px; right: -6px; font-size: 0.65rem; padding: 0.15rem 0.4rem;
+        }
+
+        /* Below 992px: sidebar becomes a slide-in drawer instead of squeezing the content area. */
+        @media (max-width: 991.98px) {
+            .patient-sidebar {
+                position: fixed; left: 0; top: 0; width: 260px; max-width: 80vw;
+                transform: translateX(-100%); transition: transform 0.25s ease; z-index: 1046;
+            }
+            .patient-sidebar.show { transform: translateX(0); }
+            .sidebar-toggle-btn { display: inline-block; }
+            .patient-topbar .search-box { display: none; }
+            .patient-topbar { padding: 0.75rem 1rem; }
+            .p-4.page-content { padding: 1rem !important; }
+            .sidebar-backdrop.show {
+                display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1044;
+            }
         }
     </style>
 </head>
 <body class="h-100">
 <div class="patient-shell">
-    <aside class="patient-sidebar">
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+    <aside class="patient-sidebar" id="patientSidebar">
         <div class="brand">
             <div class="fw-bold fs-5"><strong>Nazareth</strong> Hospital</div>
             <div class="small text-secondary">Compassionate Care for a Healthier Tomorrow</div>
@@ -120,10 +140,15 @@ $navItems = [
 
     <main class="patient-main">
         <div class="patient-topbar">
-            <div class="search-box">
-                <div class="input-group">
-                    <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                    <input type="text" class="form-control border-start-0" placeholder="Search doctors, departments, appointments...">
+            <div class="d-flex align-items-center gap-2 flex-grow-1">
+                <button type="button" class="sidebar-toggle-btn" id="sidebarToggleBtn" aria-label="Open menu">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div class="search-box">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                        <input type="text" class="form-control border-start-0" placeholder="Search doctors, departments, appointments...">
+                    </div>
                 </div>
             </div>
             <div class="d-flex align-items-center gap-4">
@@ -134,14 +159,32 @@ $navItems = [
                     <?php endif; ?>
                 </a>
                 <div class="d-flex align-items-center gap-2">
-                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 36px; height: 36px;">
+                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 36px; height: 36px; flex-shrink: 0;">
                         <?php echo htmlspecialchars(strtoupper(substr($patientName, 0, 1))); ?>
                     </div>
-                    <div class="small">
+                    <div class="small d-none d-sm-block">
                         <div class="text-muted" style="line-height:1;">Welcome,</div>
                         <div class="fw-bold" style="line-height:1.2;"><?php echo htmlspecialchars($patientName); ?></div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="p-4">
+        <script>
+            (function () {
+                var sidebar = document.getElementById('patientSidebar');
+                var backdrop = document.getElementById('sidebarBackdrop');
+                var toggleBtn = document.getElementById('sidebarToggleBtn');
+                function closeSidebar() {
+                    sidebar.classList.remove('show');
+                    backdrop.classList.remove('show');
+                }
+                if (toggleBtn) {
+                    toggleBtn.addEventListener('click', function () {
+                        sidebar.classList.toggle('show');
+                        backdrop.classList.toggle('show');
+                    });
+                }
+                backdrop.addEventListener('click', closeSidebar);
+            })();
+        </script>
+        <div class="p-4 page-content">
