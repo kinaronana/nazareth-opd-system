@@ -148,7 +148,10 @@ require_once $project_root . '/includes/navbar.php';
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-bold">Create Password <span class="text-danger">*</span></label>
-                            <input type="password" name="password" class="form-control" placeholder="e.g. Str0ng!Pass2024" required>
+                            <div class="input-group">
+                                <input type="password" name="password" id="docPassword" class="form-control" placeholder="e.g. Str0ng!Pass2024" required>
+                                <span class="input-group-text bg-white password-toggle" role="button" data-target="docPassword"><i class="fa-solid fa-eye text-muted"></i></span>
+                            </div>
                         </div>
 
                         <div class="col-md-12 mt-5">
@@ -188,6 +191,24 @@ require_once $project_root . '/includes/navbar.php';
                         <button type="submit" class="btn btn-primary fw-bold px-4 shadow-sm">Create Password</button>
                     </div>
                 </form>
+                <script>
+                document.querySelectorAll('.password-toggle').forEach(function (toggle) {
+                    toggle.addEventListener('click', function () {
+                        var input = document.getElementById(toggle.getAttribute('data-target'));
+                        if (!input) return;
+                        var icon = toggle.querySelector('i');
+                        if (input.type === 'password') {
+                            input.type = 'text';
+                            icon.classList.remove('fa-eye');
+                            icon.classList.add('fa-eye-slash');
+                        } else {
+                            input.type = 'password';
+                            icon.classList.remove('fa-eye-slash');
+                            icon.classList.add('fa-eye');
+                        }
+                    });
+                });
+                </script>
             </div>
         </div>
     </div>

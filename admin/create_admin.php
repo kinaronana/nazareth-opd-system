@@ -113,11 +113,17 @@ require_once __DIR__ . '/../includes/navbar.php';
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Password <span class="text-danger">*</span></label>
-                            <input type="password" name="password" class="form-control" placeholder="At least 8 characters" required minlength="8">
+                            <div class="input-group">
+                                <input type="password" name="password" id="adminPassword" class="form-control" placeholder="At least 8 characters" required minlength="8">
+                                <span class="input-group-text bg-white password-toggle" role="button" data-target="adminPassword"><i class="fa-solid fa-eye text-muted"></i></span>
+                            </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Confirm Password <span class="text-danger">*</span></label>
-                            <input type="password" name="confirm_password" class="form-control" placeholder="Re-enter password" required minlength="8">
+                            <div class="input-group">
+                                <input type="password" name="confirm_password" id="adminConfirmPassword" class="form-control" placeholder="Re-enter password" required minlength="8">
+                                <span class="input-group-text bg-white password-toggle" role="button" data-target="adminConfirmPassword"><i class="fa-solid fa-eye text-muted"></i></span>
+                            </div>
                         </div>
                     </div>
 
@@ -126,6 +132,24 @@ require_once __DIR__ . '/../includes/navbar.php';
                         <button type="submit" class="btn btn-primary fw-bold px-4 shadow-sm">Create Administrator Account</button>
                     </div>
                 </form>
+                <script>
+                document.querySelectorAll('.password-toggle').forEach(function (toggle) {
+                    toggle.addEventListener('click', function () {
+                        var input = document.getElementById(toggle.getAttribute('data-target'));
+                        if (!input) return;
+                        var icon = toggle.querySelector('i');
+                        if (input.type === 'password') {
+                            input.type = 'text';
+                            icon.classList.remove('fa-eye');
+                            icon.classList.add('fa-eye-slash');
+                        } else {
+                            input.type = 'password';
+                            icon.classList.remove('fa-eye-slash');
+                            icon.classList.add('fa-eye');
+                        }
+                    });
+                });
+                </script>
             </div>
 
             <div class="card bg-white border-0 shadow-sm p-4">

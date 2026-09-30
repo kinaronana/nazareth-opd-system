@@ -99,7 +99,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                             <div class="col-md-12">
                                 <label class="form-label fw-bold">Password <span class="text-danger">*</span></label>
-                                <input type="password" name="password" class="form-control" placeholder="Create a strong account password" required>
+                                <div class="input-group">
+                                    <input type="password" name="password" id="regPassword" class="form-control" placeholder="Create a strong account password" required>
+                                    <span class="input-group-text bg-white password-toggle" role="button" data-target="regPassword"><i class="fa-solid fa-eye text-muted"></i></span>
+                                </div>
                             </div>
                         </div>
 
@@ -140,6 +143,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <span class="text-muted">Already registered with Nazareth OPD?</span> <a href="login.php" class="fw-bold text-decoration-none">Access Account Sign-In</a>
                         </div>
                     </form>
+                    <script>
+                    document.querySelectorAll('.password-toggle').forEach(function (toggle) {
+                        toggle.addEventListener('click', function () {
+                            var input = document.getElementById(toggle.getAttribute('data-target'));
+                            if (!input) return;
+                            var icon = toggle.querySelector('i');
+                            if (input.type === 'password') {
+                                input.type = 'text';
+                                icon.classList.remove('fa-eye');
+                                icon.classList.add('fa-eye-slash');
+                            } else {
+                                input.type = 'password';
+                                icon.classList.remove('fa-eye-slash');
+                                icon.classList.add('fa-eye');
+                            }
+                        });
+                    });
+                    </script>
                 </div>
             </div>
         </div>

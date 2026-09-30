@@ -78,21 +78,48 @@ require_once __DIR__ . '/includes/navbar.php';
                 <form action="change_password.php" method="POST">
                     <div class="mb-3">
                         <label class="form-label fw-bold">Current Password <span class="text-danger">*</span></label>
-                        <input type="password" name="current_password" class="form-control" required>
+                        <div class="input-group">
+                            <input type="password" name="current_password" id="cpCurrent" class="form-control" required>
+                            <span class="input-group-text bg-white password-toggle" role="button" data-target="cpCurrent"><i class="fa-solid fa-eye text-muted"></i></span>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">New Password <span class="text-danger">*</span></label>
-                        <input type="password" name="new_password" class="form-control" placeholder="At least 8 characters" required minlength="8">
+                        <div class="input-group">
+                            <input type="password" name="new_password" id="cpNew" class="form-control" placeholder="At least 8 characters" required minlength="8">
+                            <span class="input-group-text bg-white password-toggle" role="button" data-target="cpNew"><i class="fa-solid fa-eye text-muted"></i></span>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">Confirm New Password <span class="text-danger">*</span></label>
-                        <input type="password" name="confirm_password" class="form-control" required minlength="8">
+                        <div class="input-group">
+                            <input type="password" name="confirm_password" id="cpConfirm" class="form-control" required minlength="8">
+                            <span class="input-group-text bg-white password-toggle" role="button" data-target="cpConfirm"><i class="fa-solid fa-eye text-muted"></i></span>
+                        </div>
                     </div>
 
                     <div class="d-flex justify-content-end gap-2 mt-4 border-top pt-3">
                         <button type="submit" class="btn btn-primary fw-bold px-4 shadow-sm">Update Password</button>
                     </div>
                 </form>
+                <script>
+                document.querySelectorAll('.password-toggle').forEach(function (toggle) {
+                    toggle.addEventListener('click', function () {
+                        var input = document.getElementById(toggle.getAttribute('data-target'));
+                        if (!input) return;
+                        var icon = toggle.querySelector('i');
+                        if (input.type === 'password') {
+                            input.type = 'text';
+                            icon.classList.remove('fa-eye');
+                            icon.classList.add('fa-eye-slash');
+                        } else {
+                            input.type = 'password';
+                            icon.classList.remove('fa-eye-slash');
+                            icon.classList.add('fa-eye');
+                        }
+                    });
+                });
+                </script>
             </div>
         </div>
     </div>
