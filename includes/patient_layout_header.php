@@ -187,4 +187,9 @@ $navItems = [
                 backdrop.addEventListener('click', closeSidebar);
             })();
         </script>
+        <div class="bg-white border-bottom px-3 py-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary fw-semibold" onclick="if (document.referrer && document.referrer.indexOf(window.location.host) !== -1) { history.back(); } else { window.location.href = '/patient/dashboard.php'; }">
+                <i class="fa-solid fa-arrow-left me-1"></i>Back
+            </button>
+        </div>
         <div class="p-4 page-content">

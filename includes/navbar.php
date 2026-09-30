@@ -62,3 +62,10 @@ if (isset($_SESSION['user_id']) && isset($inboxRoutes[$role])) {
     </div>
   </div>
 </nav>
+<?php if (isset($_SESSION['user_id'])): ?>
+<div class="bg-white border-bottom px-3 py-2">
+    <button type="button" class="btn btn-sm btn-outline-secondary fw-semibold" onclick="if (document.referrer && document.referrer.indexOf(window.location.host) !== -1) { history.back(); } else { window.location.href = '<?php echo htmlspecialchars($dashboardUrl); ?>'; }">
+        <i class="fa-solid fa-arrow-left me-1"></i>Back
+    </button>
+</div>
+<?php endif; ?>
