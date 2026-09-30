@@ -93,6 +93,7 @@ require_once $project_root . '/includes/navbar.php';
 ?>
 
 <div class="container my-5">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../dashboard.php">Dashboard</a></li><li class="breadcrumb-item active">Schedule</li></ol></nav>
     <div class="row mb-4">
         <div class="col-md-12">
             <h3 class="fw-bold text-primary"><i class="fa-solid fa-calendar-days me-2"></i>Physician Consultation Availability Matrix</h3>

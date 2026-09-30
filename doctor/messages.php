@@ -67,6 +67,7 @@ require_once $project_root . '/includes/header.php';
 require_once $project_root . '/includes/navbar.php';
 ?>
 <div class="container my-5">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="dashboard.php">Dashboard</a></li><li class="breadcrumb-item active">Messages</li></ol></nav>
     <h3 class="fw-bold text-primary mb-4">Messages</h3>
     <div class="row g-4">
         <div class="col-lg-5">
