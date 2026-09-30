@@ -188,7 +188,7 @@ require_once $project_root . '/includes/navbar.php';
 
                     <div class="d-flex justify-content-end gap-2 mt-5 border-top pt-3">
                         <a href="manage_doctors.php" class="btn btn-light fw-semibold px-4">Cancel</a>
-                        <button type="submit" class="btn btn-primary fw-bold px-4 shadow-sm">Create Password</button>
+                        <button type="submit" class="btn btn-primary fw-bold px-4 shadow-sm">Create Account</button>
                     </div>
                 </form>
                 <script>
