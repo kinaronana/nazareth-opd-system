@@ -81,6 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: radial-gradient(circle at 15% 20%, #2b6cb0 0%, #14213d 55%, #0b1224 100%);
             overflow: hidden;
         }
+
         .auth-hero::before, .auth-hero::after {
             content: ""; position: absolute; border-radius: 50%; background: rgba(255,255,255,0.06);
         }
@@ -97,7 +98,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         .auth-panel { flex: 1; display: flex; align-items: center; justify-content: center; background: #f4f6f9; padding: 2rem; }
         .auth-card { width: 100%; max-width: 400px; }
-        @media (max-width: 900px) { .auth-hero { display: none; } }
+
+        /* Below 900px: stack the welcome panel above the sign-in card instead of hiding it. */
+        @media (max-width: 900px) {
+            .auth-shell { flex-direction: column; min-height: auto; }
+            .auth-hero {
+                flex: none; padding: 2rem 1.5rem 1.75rem; min-height: auto;
+            }
+            .auth-hero .headline h1 { font-size: 1.6rem; }
+            .auth-hero .headline p { font-size: 0.9rem; }
+            .auth-hero .feature-row { gap: 1rem; justify-content: center; }
+            .auth-hero .feature-item { width: 80px; }
+            .auth-hero .feature-item .icon-circle { width: 42px; height: 42px; font-size: 0.95rem; }
+            .auth-hero .feature-item .small { font-size: 0.72rem; }
+            .auth-panel { padding: 2rem 1.5rem; }
+        }
     </style>
 </head>
 <body>
