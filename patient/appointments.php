@@ -75,7 +75,9 @@ require_once __DIR__ . '/../includes/patient_layout_header.php';
                     echo '<td class="small text-muted">' . htmlspecialchars($r['reason'] ?: '—') . '</td>';
                     echo '<td><span class="badge ' . $badge . '">' . htmlspecialchars($r['status']) . '</span></td>';
                     if ($allowCancel) {
-                        echo '<td><form method="POST" onsubmit="return confirm(\'Cancel this appointment?\');">';
+                        echo '<td class="text-nowrap">';
+                        echo '<a href="/patient/reschedule.php?appointment_id=' . (int)$r['appointment_id'] . '" class="btn btn-sm btn-outline-primary me-1">Reschedule</a>';
+                        echo '<form method="POST" class="d-inline" onsubmit="return confirm(\'Cancel this appointment?\');">';
                         echo '<input type="hidden" name="cancel_appointment_id" value="' . (int)$r['appointment_id'] . '">';
                         echo '<button type="submit" class="btn btn-sm btn-outline-danger">Cancel</button></form></td>';
                     }
