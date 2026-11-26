@@ -1,0 +1,45 @@
+name: Deploy PHP to InfinityFree
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  web-deploy:
+    name: Sync PHP App
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get latest code
+        uses: actions/checkout@v6
+      - name: Create production database configuration
+        shell: bash
+        run: |
+          cat > config/production.php <<'PHP'
+          <?php
+          return [
+              'host' => '${{ secrets.OPD_DB_HOST }}',
+              'name' => '${{ secrets.OPD_DB_NAME }}',
+              'user' => '${{ secrets.OPD_DB_USERNAME }}',
+              'password' => '${{ secrets.OPD_DB_PASSWORD }}',
+          ];
+          PHP
+      - name: Upload the complete application to InfinityFree
+        uses: SamKirkland/FTP-Deploy-Action@v4.4.0
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftp
+          port: 21
+          local-dir: ./
+          server-dir: ./htdocs/
+          state-name: .ftp-deploy-sync-state-live-v4.json
+          log-level: verbose
+          timeout: 120000
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/.github/**
+          dangerous-clean-slate: false
