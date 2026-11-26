@@ -38,7 +38,11 @@ if (isset($_SESSION['user_id']) && isset($inboxRoutes[$role])) {
         <li class="nav-item"><a class="nav-link" href="/index.php">Home</a></li>
         <?php if (isset($_SESSION['user_id'])): ?>
           <li class="nav-item"><a class="nav-link" href="<?php echo htmlspecialchars($dashboardUrl, ENT_QUOTES, 'UTF-8'); ?>">My Dashboard</a></li>
+          <?php if ($role === 'doctor'): ?>
+            <li class="nav-item"><a class="nav-link" href="/doctor/queue.php">Patient Queue</a></li>
+          <?php endif; ?>
           <?php if ($role === 'admin'): ?>
+            <li class="nav-item"><a class="nav-link" href="/admin/queue.php">OPD Queue Centre</a></li>
             <li class="nav-item"><a class="nav-link" href="/admin/doctors/manage_doctors.php">Doctors</a></li>
             <li class="nav-item"><a class="nav-link" href="/admin/manage_appointments.php">Appointments</a></li>
           <?php endif; ?>
