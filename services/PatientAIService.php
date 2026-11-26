@@ -14,7 +14,7 @@ function patientSupportNeedsEmergencyEscalation(string $message): bool
         '/\b(heart attack|cardiac arrest|stopped breathing|not breathing|gasping for air)\b/',
         '/\b(blue lips|turning blue|severe breathlessness|cannot get enough air)\b/',
         '/\b(cannot wake|can.t wake|won.t wake up|unresponsive|collapsed and not responding)\b/',
-        '/\b(heavy bleeding|bleeding (will not|won.t) stop|bleeding that (will not|won.t) stop|won.t stop bleeding|cannot stop bleeding|can.t stop bleeding|blood will not stop)\b/',
+        '/\b(heavy bleeding|bleeding (will not|won.t) stop|bleeding that (will not|won.t) stop|won.t stop (the )?bleeding|cannot stop (the )?bleeding|can.t stop (the )?bleeding|blood will not stop)\b/',
         '/\b(took too many pills|taken an overdose|intentional overdose|poisoned myself)\b/',
         '/\b(plan to kill myself|going to end my life|about to hurt myself)\b/',
         '/\b(throat is closing|tongue is swelling|face is swelling.*breath)\b/'
