@@ -47,6 +47,7 @@ $navItems = [
     ['key' => 'find_doctor', 'icon' => 'stethoscope',      'label' => 'Find a Doctor',      'href' => '/patient/find_doctor.php'],
     ['key' => 'appointments','icon' => 'calendar-days',    'label' => 'My Appointments',    'href' => '/patient/appointments.php'],
     ['key' => 'queue',       'icon' => 'users-line',        'label' => 'My Patient Queue',    'href' => '/patient/queue.php'],
+    ['key' => 'ai_assistant','icon' => 'robot',             'label' => 'Patient AI Assistant','href' => '/patient/ai_assistant.php'],
     ['key' => 'records',     'icon' => 'folder-open',      'label' => 'Medical Records',    'href' => '/patient/medical_records.php'],
     ['key' => 'prescriptions','icon' => 'prescription-bottle-medical', 'label' => 'Prescriptions', 'href' => '/patient/prescriptions.php'],
     ['key' => 'results',     'icon' => 'flask',            'label' => 'Test Results',       'href' => '/patient/test_results.php'],

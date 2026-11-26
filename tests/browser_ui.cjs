@@ -67,6 +67,17 @@ async function expectPage(context, path, heading) {
     // Verify the patient queue page continues its scheduled refresh cycle.
     const poll = queue.waitForResponse(r => r.url().includes('/api/patient_queue.php') && r.request().method() === 'GET', { timeout: 18000 });
     await poll;
+
+    // Patient assistant FAQ and emergency safety banner.
+    const assistant = await expectPage(patientCtx, '/patient/ai_assistant.php', 'Patient Support Assistant');
+    await assistant.getByRole('button', { name: 'New chat' }).click();
+    await assistant.locator('#aiMessageInput').fill('How do I book an appointment?');
+    await assistant.getByRole('button', { name: 'Send' }).click();
+    await assistant.getByText(/Book Appointment/).waitFor();
+    await assistant.locator('#aiMessageInput').fill('I have chest pain and cannot breathe');
+    await assistant.getByRole('button', { name: 'Send' }).click();
+    await assistant.getByRole('alert').waitFor();
+    assert.equal(await assistant.locator('.ai-chat-bubble.emergency').count(), 1, 'Assistant highlights emergency guidance');
     await patientCtx.close();
 
     // Role-based page denial is rendered as HTTP 403, not an accidental dashboard.
@@ -76,7 +87,7 @@ async function expectPage(context, path, heading) {
     assert.equal(deniedResponse.status(), 403, 'Patient is denied the admin queue page');
     await deniedCtx.close();
 
-    console.log('All Playwright desktop/mobile dashboard and queue checks passed.');
+    console.log('All Playwright desktop/mobile dashboard, queue and patient assistant checks passed.');
   } finally {
     await browser.close();
   }

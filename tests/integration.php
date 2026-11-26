@@ -26,6 +26,9 @@ function check(bool $condition, string $message): void {
 
 $pdo->exec(file_get_contents(__DIR__ . '/fixtures.sql'));
 $pdo->exec(file_get_contents(__DIR__ . '/../config/queue_schema.sql'));
+$aiSchema = file_get_contents(__DIR__ . '/../config/ai_assistant_schema.sql');
+foreach (array_filter(array_map('trim', explode(';', $aiSchema))) as $statement) { $pdo->exec($statement); }
+check((int)$pdo->query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name IN ('patient_ai_conversations','patient_ai_messages')")->fetchColumn() === 2, 'patient assistant tables are created in the disposable database');
 
 check((int)$pdo->query("SELECT COUNT(*) FROM patients")->fetchColumn() === 2, 'admin dashboard patient metric fixture');
 check((int)$pdo->query("SELECT COUNT(*) FROM doctors")->fetchColumn() === 1, 'admin dashboard doctor metric fixture');

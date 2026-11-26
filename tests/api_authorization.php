@@ -68,6 +68,7 @@ $admin = newSession('Admin', 1);
 $doctor = newSession('Doctor', 2);
 $doctorTwo = newSession('Doctor', $secondDoctorUserId);
 $patient = newSession('Patient', 3);
+$patientTwo = newSession('Patient', 4);
 
 // Role-specific dashboard APIs.
 $r = httpRequest('/api/dashboard_metrics.php', null, $admin);
