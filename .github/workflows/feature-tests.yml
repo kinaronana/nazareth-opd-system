@@ -42,6 +42,10 @@ jobs:
       OPD_DB_NAME: nazareth_opd_test
       OPD_DB_USERNAME: opd_test
       OPD_DB_PASSWORD: opd_test_password
+      # Local mock endpoint exercises the provider adapter without external calls.
+      GEMINI_API_KEY: ci-mock-gemini-key
+      GEMINI_MODEL: gemini-3.5-flash-lite
+      OPD_GEMINI_API_URL: http://127.0.0.1:8080/__test/gemini
     steps:
       - name: Check out feature branch
         uses: actions/checkout@v4
@@ -50,7 +54,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: pdo_mysql
+          extensions: pdo_mysql, curl
           coverage: none
 
       - name: Lint all PHP files

@@ -39,11 +39,15 @@ try {
  if ($action==='delete') { $s=$pdo->prepare('DELETE FROM patient_ai_conversations WHERE conversation_id=? AND patient_id=? AND user_id=?'); $s->execute([$id,$patientId,$userId]); aiJson(200,['message'=>'Conversation deleted.']); }
  if ($action!=='send') aiJson(422,['error'=>'Unsupported action.']);
  $message=trim((string)($input['message']??''));
- if ($message===''||strlen($message)>8000) aiJson(422,['error'=>'Enter a message of up to 2,000 characters.']);
+ if ($message===''||strlen($message)>2000) aiJson(422,['error'=>'Enter a message of up to 2,000 characters.']);
  $now=time(); $_SESSION['patient_ai_recent_sends']=array_values(array_filter($_SESSION['patient_ai_recent_sends']??[],static fn($t)=>is_int($t)&&$t>$now-60));
  if (count($_SESSION['patient_ai_recent_sends'])>=12) aiJson(429,['error'=>'Please wait before sending another message.']);
  $_SESSION['patient_ai_recent_sends'][]=$now;
- $reply=generatePatientSupportResponse($message); $pdo->beginTransaction();
+
+ // Fetch only the authenticated owner's recent conversation history.
+ $s=$pdo->prepare('SELECT sender,message_text FROM patient_ai_messages WHERE conversation_id=? ORDER BY message_id DESC LIMIT 12');
+ $s->execute([$id]); $history=array_reverse($s->fetchAll(PDO::FETCH_ASSOC));
+ $reply=generatePatientSupportResponse($message,$history); $pdo->beginTransaction();
  try {
   $s=$pdo->prepare("INSERT INTO patient_ai_messages(conversation_id,sender,message_text) VALUES(?,'patient',?)"); $s->execute([$id,$message]);
   $s=$pdo->prepare("INSERT INTO patient_ai_messages(conversation_id,sender,message_text,safety_flag) VALUES(?,'assistant',?,?)"); $s->execute([$id,$reply['text'],$reply['safety_flag']]);
@@ -51,4 +55,4 @@ try {
   $pdo->commit();
  } catch(Throwable $e) { if($pdo->inTransaction()) $pdo->rollBack(); throw $e; }
  aiJson(200,['reply'=>$reply['text'],'safety_flag'=>$reply['safety_flag']]);
-} catch(Throwable $e) { error_log('Patient support assistant error: '.$e->getMessage()); aiJson(500,['error'=>'The patient support assistant is temporarily unavailable.']); }
+} catch(Throwable $e) { error_log('Patient support assistant request failed.'); aiJson(500,['error'=>'The patient support assistant is temporarily unavailable.']); }

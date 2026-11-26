@@ -132,12 +132,17 @@ $conversationId = (int)($createdConversation['conversation_id'] ?? 0);
 assertApi($r['status'] === 201 && $conversationId > 0, 'Patient can create an assistant conversation');
 
 $r = httpRequest('/api/patient_ai_assistant.php', ['action'=>'send','conversation_id'=>$conversationId,'message'=>'How do I book an appointment?','csrf'=>$patientAiCsrf], $patient);
-assertApi($r['status'] === 200 && !empty(decoded($r)['reply']), 'Patient can send a message and receive the prototype response');
+$firstAssistantReply = decoded($r)['reply'] ?? '';
+assertApi($r['status'] === 200 && strpos($firstAssistantReply, 'Book Appointment') !== false, 'Patient message reaches the mocked Gemini provider and receives a generated response');
+
+$r = httpRequest('/api/patient_ai_assistant.php', ['action'=>'send','conversation_id'=>$conversationId,'message'=>'Can you repeat what I asked?','csrf'=>$patientAiCsrf], $patient);
+$contextualReply = decoded($r)['reply'] ?? '';
+assertApi($r['status'] === 200 && strpos($contextualReply, 'previously asked how to book') !== false, 'Gemini request includes recent conversation context');
 
 $r = httpRequest('/api/patient_ai_assistant.php?conversation_id=' . $conversationId, null, $patient);
 $storedConversation = decoded($r);
 $storedMessages = $storedConversation['messages'] ?? [];
-assertApi($r['status'] === 200 && count($storedMessages) === 2 && ($storedMessages[0]['sender'] ?? '') === 'patient' && ($storedMessages[1]['sender'] ?? '') === 'assistant', 'Patient and assistant messages are persisted in conversation history');
+assertApi($r['status'] === 200 && count($storedMessages) === 4 && ($storedMessages[0]['sender'] ?? '') === 'patient' && ($storedMessages[1]['sender'] ?? '') === 'assistant', 'Patient and assistant messages are persisted in conversation history');
 
 $r = httpRequest('/api/patient_ai_assistant.php?conversation_id=' . $conversationId, null, $patientTwo);
 assertApi($r['status'] === 404, 'A different patient cannot read another patient conversation');
