@@ -56,7 +56,7 @@ require_once __DIR__ . '/../includes/navbar.php';
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
                         <h6 class="text-muted text-uppercase small font-weight-bold">Total Patients</h6>
-                        <h3 class="fw-bold m-0 text-dark"><?php echo $patientCount; ?></h3>
+                        <h3 class="fw-bold m-0 text-dark" data-counter-key="patients"><?php echo $patientCount; ?></h3>
                     </div>
                     <div class="text-primary"><i class="fa-solid fa-hospital-user fa-2x"></i></div>
                 </div>
@@ -67,7 +67,7 @@ require_once __DIR__ . '/../includes/navbar.php';
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
                         <h6 class="text-muted text-uppercase small font-weight-bold">Active Doctors</h6>
-                        <h3 class="fw-bold m-0 text-dark"><?php echo $doctorCount; ?></h3>
+                        <h3 class="fw-bold m-0 text-dark" data-counter-key="doctors"><?php echo $doctorCount; ?></h3>
                     </div>
                     <div class="text-success"><i class="fa-solid fa-user-doctor fa-2x"></i></div>
                 </div>
@@ -78,7 +78,7 @@ require_once __DIR__ . '/../includes/navbar.php';
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
                         <h6 class="text-muted text-uppercase small font-weight-bold">Departments</h6>
-                        <h3 class="fw-bold m-0 text-dark"><?php echo $deptCount; ?></h3>
+                        <h3 class="fw-bold m-0 text-dark" data-counter-key="departments"><?php echo $deptCount; ?></h3>
                     </div>
                     <div class="text-info"><i class="fa-solid fa-sitemap fa-2x"></i></div>
                 </div>
@@ -89,7 +89,7 @@ require_once __DIR__ . '/../includes/navbar.php';
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
                         <h6 class="text-muted text-uppercase small font-weight-bold">Today's Visits</h6>
-                        <h3 class="fw-bold m-0 text-dark"><?php echo $todayCount; ?></h3>
+                        <h3 class="fw-bold m-0 text-dark" data-counter-key="today"><?php echo $todayCount; ?></h3>
                     </div>
                     <div class="text-warning"><i class="fa-solid fa-calendar-day fa-2x"></i></div>
                 </div>
@@ -176,6 +176,8 @@ require_once __DIR__ . '/../includes/navbar.php';
         </div>
     </div>
 </div>
+
+<script src="/assets/js/dashboard-live.js" defer></script>
 
 <?php 
 require_once __DIR__ . '/../includes/footer.php'; 

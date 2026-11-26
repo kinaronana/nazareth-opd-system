@@ -131,7 +131,7 @@ require_once $project_root . '/includes/navbar.php';
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
                         <h6 class="text-muted text-uppercase small font-weight-bold">Pending Approval</h6>
-                        <h3 class="fw-bold m-0 text-dark"><?php echo $pendingCount; ?></h3>
+                        <h3 class="fw-bold m-0 text-dark" data-counter-key="pending"><?php echo $pendingCount; ?></h3>
                     </div>
                     <div class="text-warning"><i class="fa-solid fa-clock fa-2x"></i></div>
                 </div>
@@ -142,7 +142,7 @@ require_once $project_root . '/includes/navbar.php';
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
                         <h6 class="text-muted text-uppercase small font-weight-bold">Confirmed Sessions</h6>
-                        <h3 class="fw-bold m-0 text-dark"><?php echo $approvedCount; ?></h3>
+                        <h3 class="fw-bold m-0 text-dark" data-counter-key="approved"><?php echo $approvedCount; ?></h3>
                     </div>
                     <div class="text-success"><i class="fa-solid fa-circle-check fa-2x"></i></div>
                 </div>
@@ -153,7 +153,7 @@ require_once $project_root . '/includes/navbar.php';
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
                         <h6 class="text-muted text-uppercase small font-weight-bold">Completed Visits</h6>
-                        <h3 class="fw-bold m-0 text-dark"><?php echo $completedCount; ?></h3>
+                        <h3 class="fw-bold m-0 text-dark" data-counter-key="completed"><?php echo $completedCount; ?></h3>
                     </div>
                     <div class="text-info"><i class="fa-solid fa-hand-holding-medical fa-2x"></i></div>
                 </div>
@@ -254,6 +254,8 @@ require_once $project_root . '/includes/navbar.php';
         </div>
     </div>
 </div>
+
+<script src="/assets/js/dashboard-live.js" defer></script>
 
 <?php
 require_once $project_root . '/includes/footer.php';

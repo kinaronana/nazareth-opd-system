@@ -36,3 +36,8 @@ body {
     border-radius: 8px !important;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
+
+
+/* Live dashboard analytics */
+[data-counter-key] { font-variant-numeric: tabular-nums; transition: color 180ms ease; }
+@media (prefers-reduced-motion: reduce) { [data-counter-key] { transition: none; } }
