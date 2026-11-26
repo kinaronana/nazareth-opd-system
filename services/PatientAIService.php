@@ -11,13 +11,13 @@ function patientSupportNeedsEmergencyEscalation(string $message): bool
     if (aiEmergencyWarning($message)) return true;
     $text = strtolower($message);
     $patterns = [
-        '/\\b(heart attack|cardiac arrest|stopped breathing|not breathing|gasping for air)\\b/',
-        '/\\b(blue lips|turning blue|severe breathlessness|cannot get enough air)\\b/',
-        '/\\b(cannot wake|can.t wake|won.t wake up|unresponsive|collapsed and not responding)\\b/',
-        '/\\b(heavy bleeding|won.t stop bleeding|bleeding that won.t stop)\\b/',
-        '/\\b(took too many pills|taken an overdose|intentional overdose|poisoned myself)\\b/',
-        '/\\b(plan to kill myself|going to end my life|about to hurt myself)\\b/',
-        '/\\b(throat is closing|tongue is swelling|face is swelling.*breath)\\b/'
+        '/\b(heart attack|cardiac arrest|stopped breathing|not breathing|gasping for air)\b/',
+        '/\b(blue lips|turning blue|severe breathlessness|cannot get enough air)\b/',
+        '/\b(cannot wake|can.t wake|won.t wake up|unresponsive|collapsed and not responding)\b/',
+        '/\b(heavy bleeding|bleeding (will not|won.t) stop|bleeding that (will not|won.t) stop|won.t stop bleeding|cannot stop bleeding|can.t stop bleeding|blood will not stop)\b/',
+        '/\b(took too many pills|taken an overdose|intentional overdose|poisoned myself)\b/',
+        '/\b(plan to kill myself|going to end my life|about to hurt myself)\b/',
+        '/\b(throat is closing|tongue is swelling|face is swelling.*breath)\b/'
     ];
     foreach ($patterns as $pattern) {
         if (preg_match($pattern, $text)) return true;
@@ -33,11 +33,11 @@ function patientSupportResponseIsClinicallyUnsafe(string $response): bool
 {
     $text = strtolower(strip_tags($response));
     $patterns = [
-        '/\\b(you have|you are suffering from|you likely have|this is likely|my diagnosis|diagnosis is)\\b/',
-        '/\\b(prescribe|prescription for you|take\\s+\\d+\\s*(mg|mcg|ml|tablets?))\\b/',
-        '/\\b(dosage|dose of|increase your dose|decrease your dose|double your dose)\\b/',
-        '/\\b(start taking|stop taking|continue taking|switch to)\\b.{0,50}\\b(medicine|medication|drug|tablet|antibiotic|painkiller)\\b/',
-        '/\\b(ibuprofen|paracetamol|acetaminophen|aspirin|amoxicillin)\\b/'
+        '/\b(you have|you are suffering from|you likely have|this is likely|my diagnosis|diagnosis is)\b/',
+        '/\b(prescribe|prescription for you|take\s+\\d+\s*(mg|mcg|ml|tablets?))\b/',
+        '/\b(dosage|dose of|increase your dose|decrease your dose|double your dose)\b/',
+        '/\b(start taking|stop taking|continue taking|switch to)\b.{0,50}\b(medicine|medication|drug|tablet|antibiotic|painkiller)\b/',
+        '/\b(ibuprofen|paracetamol|acetaminophen|aspirin|amoxicillin)\b/'
     ];
     foreach ($patterns as $pattern) {
         if (preg_match($pattern, $text)) return true;
