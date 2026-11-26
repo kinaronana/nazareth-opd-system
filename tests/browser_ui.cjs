@@ -44,6 +44,8 @@ async function expectPage(context, path, heading) {
     const doctor = await expectPage(doctorCtx, '/doctor/dashboard.php', 'Welcome, Dr Test Clinician');
     assert.equal(await doctor.locator('[data-counter-key]').count(), 3, 'Doctor dashboard renders three statistic counters');
     await expectPage(doctorCtx, '/doctor/queue.php', "Today's Patient Queue");
+    const doctorAi = await expectPage(doctorCtx, '/doctor/ai_assistant.php', 'Doctor AI Documentation Assistant');
+    assert.equal(await doctorAi.locator('#appointmentSelect').count(), 1, 'Doctor AI workspace renders assigned appointment selector');
     await doctorCtx.close();
 
     // Mobile patient dashboard, drawer navigation, queue check-in and polling.

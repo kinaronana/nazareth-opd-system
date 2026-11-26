@@ -105,6 +105,7 @@ require_once $project_root . '/includes/navbar.php';
                         <small class="text-muted font-monospace">Clinical Token: #DOC-00<?php echo $doctor_id; ?></small>
                     </div>
                     <div class="ms-md-auto d-grid d-md-flex gap-2">
+                        <a href="/doctor/ai_assistant.php" class="btn btn-outline-success fw-bold"><i class="fa-solid fa-wand-magic-sparkles me-1"></i>AI Documentation</a>
                         <a href="messages.php" class="btn btn-outline-secondary fw-bold">
                             <i class="fa-solid fa-envelope me-1"></i>Messages
                         </a>

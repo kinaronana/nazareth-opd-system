@@ -176,4 +176,33 @@ assertApi($r['status'] === 200, 'Conversation owner can delete their conversatio
 $r = httpRequest('/api/patient_ai_assistant.php?conversation_id=' . $conversationId, null, $patient);
 assertApi($r['status'] === 404, 'Deleted assistant conversation and its message history are no longer accessible');
 
+// Doctor AI documentation: assigned clinician access, CSRF, draft review and approval.
+$doctorAiRead = httpRequest('/api/doctor_ai_assistant.php?appointment_id=1', null, $doctor);
+$doctorAiData = decoded($doctorAiRead);
+assertApi($doctorAiRead['status'] === 200 && isset($doctorAiData['appointment']['patient_id'], $doctorAiData['csrf']), 'Assigned doctor can read appointment context and receive doctor AI CSRF token');
+$doctorAiCsrf = $doctorAiData['csrf'];
+$doctorAiGenerate = httpRequest('/api/doctor_ai_assistant.php', ['action'=>'generate','appointment_id'=>1,'draft_type'=>'Consultation Note','source_text'=>'Fictional note: patient reports mild headache since yesterday. No other information provided.','csrf'=>$doctorAiCsrf], $doctor);
+$doctorAiDraft = decoded($doctorAiGenerate);
+$doctorAiDraftId = (int)($doctorAiDraft['draft_id'] ?? 0);
+assertApi($doctorAiGenerate['status'] === 201 && $doctorAiDraftId > 0 && ($doctorAiDraft['status'] ?? '') === 'Draft', 'Assigned doctor can generate an unapproved documentation draft');
+$wrongDoctorRead = httpRequest('/api/doctor_ai_assistant.php?appointment_id=1', null, $doctorTwo);
+$wrongDoctorCsrf = decoded(httpRequest('/api/doctor_ai_assistant.php?appointment_id='.$secondAppointmentId, null, $doctorTwo))['csrf'] ?? '';
+assertApi($wrongDoctorRead['status'] === 404, 'Different doctor cannot read another doctor appointment context');
+$wrongDoctorAction = httpRequest('/api/doctor_ai_assistant.php', ['action'=>'approve','draft_id'=>$doctorAiDraftId,'csrf'=>$wrongDoctorCsrf], $doctorTwo);
+assertApi($wrongDoctorAction['status'] === 404, 'Different doctor cannot approve another doctor draft');
+$noCsrf = httpRequest('/api/doctor_ai_assistant.php', ['action'=>'generate','appointment_id'=>1,'draft_type'=>'Consultation Note','source_text'=>'Fictional note'], $doctor);
+assertApi($noCsrf['status'] === 419, 'Doctor AI API rejects missing CSRF token');
+$review = httpRequest('/api/doctor_ai_assistant.php', ['action'=>'review','draft_id'=>$doctorAiDraftId,'draft_text'=>'Reviewed fictional consultation note. Missing fields remain not provided.','csrf'=>$doctorAiCsrf], $doctor);
+assertApi($review['status'] === 200, 'Doctor can edit and save draft for review');
+$approve = httpRequest('/api/doctor_ai_assistant.php', ['action'=>'approve','draft_id'=>$doctorAiDraftId,'csrf'=>$doctorAiCsrf], $doctor);
+assertApi($approve['status'] === 200, 'Assigned doctor can approve reviewed draft');
+$approvedAgain = httpRequest('/api/doctor_ai_assistant.php', ['action'=>'approve','draft_id'=>$doctorAiDraftId,'csrf'=>$doctorAiCsrf], $doctor);
+assertApi($approvedAgain['status'] === 409, 'Already approved draft cannot be approved twice');
+$patientDenied = httpRequest('/api/doctor_ai_assistant.php?appointment_id=1', null, $patient);
+assertApi($patientDenied['status'] === 403, 'Patient cannot access doctor AI documentation API');
+$adminDenied = httpRequest('/api/doctor_ai_assistant.php?appointment_id=1', null, $admin);
+assertApi($adminDenied['status'] === 403, 'Admin cannot access doctor AI documentation API');
+$unauthPage = httpRequest('/doctor/ai_assistant.php', null, $patient);
+assertApi($unauthPage['status'] === 403, 'Patient cannot open doctor AI documentation page');
+
 echo "All authenticated PHP API checks passed.\n";

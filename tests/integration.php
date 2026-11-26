@@ -28,6 +28,9 @@ $pdo->exec(file_get_contents(__DIR__ . '/fixtures.sql'));
 $pdo->exec(file_get_contents(__DIR__ . '/../config/queue_schema.sql'));
 $aiSchema = file_get_contents(__DIR__ . '/../config/ai_assistant_schema.sql');
 foreach (array_filter(array_map('trim', explode(';', $aiSchema))) as $statement) { $pdo->exec($statement); }
+$doctorAiSchema = file_get_contents(__DIR__ . '/../config/doctor_ai_schema.sql');
+foreach (array_filter(array_map('trim', explode(';', $doctorAiSchema))) as $statement) { $pdo->exec($statement); }
+check((int)$pdo->query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name IN ('doctor_ai_drafts','doctor_ai_audit')")->fetchColumn() === 2, 'doctor AI draft and audit tables are created in disposable database');
 check((int)$pdo->query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name IN ('patient_ai_conversations','patient_ai_messages')")->fetchColumn() === 2, 'patient assistant tables are created in the disposable database');
 
 require_once __DIR__ . '/../services/PatientAIService.php';
