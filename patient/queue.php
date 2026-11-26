@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../config/auth_middleware.php';
 enforceRoleAccess(['Patient']);
+$activePage = 'queue';
 if (empty($_SESSION['queue_csrf'])) $_SESSION['queue_csrf']=bin2hex(random_bytes(32));
 $csrf=$_SESSION['queue_csrf'];
 require_once __DIR__ . '/../includes/header.php';
