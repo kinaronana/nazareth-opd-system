@@ -36,6 +36,29 @@ $fallbackReply = generatePatientSupportResponse('How do I book an appointment?')
 check(strpos($fallbackReply['text'], 'Book Appointment') !== false, 'assistant safely falls back to the local FAQ when no Gemini key is configured');
 $emergencyReply = generatePatientSupportResponse('I have chest pain and cannot breathe');
 check(($emergencyReply['safety_flag'] ?? '') === 'emergency_warning', 'emergency messages are handled locally without calling Gemini');
+$emergencyVariants = [
+    'My lips are turning blue and I am gasping for air',
+    'He is unresponsive and I cannot wake him',
+    'I took too many pills by mistake',
+    'The bleeding will not stop',
+    'My throat is closing and my tongue is swelling',
+    'I am about to hurt myself'
+];
+foreach ($emergencyVariants as $variant) {
+    check(patientSupportNeedsEmergencyEscalation($variant), 'emergency wording is escalated: ' . substr($variant, 0, 35));
+    check((patientSupportEmergencyReply()['safety_flag'] ?? '') === 'emergency_warning', 'emergency escalation returns a dedicated warning');
+}
+check(!patientSupportNeedsEmergencyEscalation('I have had a mild headache since yesterday'), 'non-emergency symptom wording is not automatically classified as an emergency');
+$unsafeResponses = [
+    'You likely have pneumonia.',
+    'Take 2 tablets of ibuprofen now.',
+    'Start taking antibiotics for five days.',
+    'Double your dose if the pain continues.'
+];
+foreach ($unsafeResponses as $unsafeResponse) {
+    check(patientSupportResponseIsClinicallyUnsafe($unsafeResponse), 'unsafe clinical output is detected');
+}
+check(!patientSupportResponseIsClinicallyUnsafe('Please describe your symptoms to a qualified clinician.'), 'safe clinician-referral wording remains allowed');
 
 check((int)$pdo->query("SELECT COUNT(*) FROM patients")->fetchColumn() === 2, 'admin dashboard patient metric fixture');
 check((int)$pdo->query("SELECT COUNT(*) FROM doctors")->fetchColumn() === 1, 'admin dashboard doctor metric fixture');
