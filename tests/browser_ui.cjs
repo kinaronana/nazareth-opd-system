@@ -1,6 +1,6 @@
 'use strict';
 
-const { chromium } = require('playwright');
+const { chromium, expect } = require('playwright');
 const assert = require('node:assert/strict');
 
 const base = process.env.OPD_TEST_BASE_URL || 'http://127.0.0.1:8080';
@@ -52,7 +52,7 @@ async function expectPage(context, path, heading) {
     await doctorAi.locator('#draftText').waitFor();
     await doctorAi.locator('#draftText').fill('Reviewed browser test note. Missing information remains not provided.');
     await doctorAi.getByRole('button', { name: 'Save reviewed edits' }).click();
-    await doctorAi.getByRole('button', { name: 'Approve draft' }).waitFor({ state: 'enabled' });
+    await expect(doctorAi.getByRole('button', { name: 'Approve draft' })).toBeEnabled();
     doctorAi.once('dialog', dialog => dialog.accept());
     await doctorAi.getByRole('button', { name: 'Approve draft' }).click();
     await doctorAi.getByText(/Medical record #/).waitFor();
