@@ -41,6 +41,11 @@ $emergencyVariants = [
     'He is unresponsive and I cannot wake him',
     'I took too many pills by mistake',
     'The bleeding will not stop',
+    "The bleeding won't stop",
+    'Bleeding that will not stop',
+    "I can't stop the bleeding",
+    'The blood will not stop',
+    'I cannot stop bleeding',
     'My throat is closing and my tongue is swelling',
     'I am about to hurt myself'
 ];
