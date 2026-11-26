@@ -57,3 +57,17 @@ jobs:
 
       - name: Run isolated MySQL integration tests
         run: php tests/integration.php
+
+      - name: Start isolated PHP application server
+        run: |
+          php -S 127.0.0.1:8080 -t . tests/http_router.php > /tmp/opd-php-server.log 2>&1 &
+          echo $! > /tmp/opd-php-server.pid
+          for attempt in $(seq 1 30); do
+            if curl --silent --fail http://127.0.0.1:8080/__test/session >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Exercise authenticated PHP APIs and role restrictions
+        run: php tests/api_authorization.php
