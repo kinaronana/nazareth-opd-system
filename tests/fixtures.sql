@@ -35,6 +35,8 @@ CREATE TABLE doctors (
   user_id INT NOT NULL UNIQUE,
   department_id INT NOT NULL,
   name VARCHAR(150) NOT NULL,
+  specialization VARCHAR(150) NOT NULL DEFAULT 'General Practice',
+  profile_photo VARCHAR(255) NOT NULL DEFAULT 'default-avatar.png',
   FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
   FOREIGN KEY (department_id) REFERENCES departments(department_id)
 ) ENGINE=InnoDB;
@@ -47,6 +49,7 @@ CREATE TABLE appointments (
   appointment_time TIME NOT NULL,
   reason TEXT NULL,
   status VARCHAR(30) NOT NULL DEFAULT 'Pending',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE,
   FOREIGN KEY (doctor_id) REFERENCES doctors(doctor_id) ON DELETE CASCADE
 ) ENGINE=InnoDB;

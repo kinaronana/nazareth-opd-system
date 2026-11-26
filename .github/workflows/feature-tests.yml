@@ -81,3 +81,19 @@ jobs:
 
       - name: Exercise authenticated PHP APIs and role restrictions
         run: php tests/api_authorization.php
+
+      - name: Seed isolated browser-test appointment
+        run: php tests/browser_seed.php
+
+      - name: Set up Node.js for browser tests
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright and Chromium
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+
+      - name: Run desktop and mobile browser tests
+        run: node tests/browser_ui.cjs
