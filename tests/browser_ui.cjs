@@ -62,7 +62,7 @@ async function expectPage(context, path, heading) {
     await checkIn.waitFor({ state: 'visible' });
     await checkIn.click();
     await queue.getByText('Check-in successful.').waitFor();
-    await queue.getByText('Checked in').waitFor();
+    await queue.getByText('Checked in').first().waitFor();
 
     // Verify the patient queue page continues its scheduled refresh cycle.
     const poll = queue.waitForResponse(r => r.url().includes('/api/patient_queue.php') && r.request().method() === 'GET', { timeout: 18000 });
