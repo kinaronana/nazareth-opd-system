@@ -91,7 +91,7 @@ require_once __DIR__ . '/../includes/patient_layout_header.php';
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h3 class="fw-bold text-primary m-0" data-counter-key="upcoming" data-counter-key="completed" data-counter-key="prescriptions" data-counter-key="results">Dashboard</h3>
+        <h3 class="fw-bold text-primary m-0">Dashboard</h3>
         <p class="text-secondary m-0">Welcome back, <?php echo htmlspecialchars(explode(' ', $patientName)[0]); ?>! Manage your health with ease.</p>
     </div>
     <div class="text-secondary fw-semibold"><?php echo date('l, j F Y'); ?></div>
@@ -103,7 +103,7 @@ require_once __DIR__ . '/../includes/patient_layout_header.php';
         <div class="card border-0 shadow-sm h-100" style="background:#e7f1ff;">
             <div class="card-body">
                 <div class="text-primary fw-semibold small mb-1"><i class="fa-solid fa-calendar me-1"></i>Upcoming Appointments</div>
-                <div class="fs-3 fw-bold"><?php echo $upcomingCount; ?></div>
+                <div class="fs-3 fw-bold" data-counter-key="upcoming"><?php echo $upcomingCount; ?></div>
                 <a href="/patient/appointments.php" class="small fw-semibold text-decoration-none">View Details &rarr;</a>
             </div>
         </div>
@@ -112,7 +112,7 @@ require_once __DIR__ . '/../includes/patient_layout_header.php';
         <div class="card border-0 shadow-sm h-100" style="background:#e6f7ee;">
             <div class="card-body">
                 <div class="text-success fw-semibold small mb-1"><i class="fa-solid fa-video me-1"></i>Completed Consultations</div>
-                <div class="fs-3 fw-bold"><?php echo $completedCount; ?></div>
+                <div class="fs-3 fw-bold" data-counter-key="completed"><?php echo $completedCount; ?></div>
                 <a href="/patient/appointments.php" class="small fw-semibold text-decoration-none">View Details &rarr;</a>
             </div>
         </div>
@@ -121,7 +121,7 @@ require_once __DIR__ . '/../includes/patient_layout_header.php';
         <div class="card border-0 shadow-sm h-100" style="background:#fff6e6;">
             <div class="card-body">
                 <div class="fw-semibold small mb-1 text-warning-emphasis"><i class="fa-solid fa-file-prescription me-1"></i>Prescriptions</div>
-                <div class="fs-3 fw-bold"><?php echo $prescriptionsCount; ?></div>
+                <div class="fs-3 fw-bold" data-counter-key="prescriptions"><?php echo $prescriptionsCount; ?></div>
                 <a href="/patient/prescriptions.php" class="small fw-semibold text-decoration-none">View Details &rarr;</a>
             </div>
         </div>
@@ -130,7 +130,7 @@ require_once __DIR__ . '/../includes/patient_layout_header.php';
         <div class="card border-0 shadow-sm h-100" style="background:#fdeaea;">
             <div class="card-body">
                 <div class="fw-semibold small mb-1 text-danger"><i class="fa-solid fa-flask me-1"></i>Test Results</div>
-                <div class="fs-3 fw-bold"><?php echo $testResultsCount; ?></div>
+                <div class="fs-3 fw-bold" data-counter-key="results"><?php echo $testResultsCount; ?></div>
                 <a href="/patient/test_results.php" class="small fw-semibold text-decoration-none">View Details &rarr;</a>
             </div>
         </div>
