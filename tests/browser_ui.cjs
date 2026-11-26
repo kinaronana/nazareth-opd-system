@@ -37,7 +37,7 @@ async function expectPage(context, path, heading) {
     const adminCtx = await sessionContext(browser, 'Admin', 1, { width: 1365, height: 900 });
     const admin = await expectPage(adminCtx, '/admin/dashboard.php', 'Administrative Control Center');
     assert.equal(await admin.locator('[data-counter-key]').count(), 4, 'Admin dashboard renders four statistic counters');
-    await expectPage(adminCtx, '/admin/queue.php', 'OPD Queue Centre');
+    await expectPage(adminCtx, '/admin/queue.php', 'OPD Queue Control Centre');
     await adminCtx.close();
 
     const doctorCtx = await sessionContext(browser, 'Doctor', 2, { width: 1365, height: 900 });
