@@ -46,7 +46,23 @@ async function expectPage(context, path, heading) {
     await expectPage(doctorCtx, '/doctor/queue.php', "Today's Patient Queue");
     const doctorAi = await expectPage(doctorCtx, '/doctor/ai_assistant.php', 'Doctor AI Documentation Assistant');
     assert.equal(await doctorAi.locator('#appointmentSelect').count(), 1, 'Doctor AI workspace renders assigned appointment selector');
+    await doctorAi.locator('#appointmentSelect').selectOption('1');
+    await doctorAi.locator('#sourceNotes').fill('Fictional browser test note: patient reports mild headache. No other information provided.');
+    await doctorAi.getByRole('button', { name: 'Generate draft' }).click();
+    await doctorAi.locator('#draftText').waitFor();
+    await doctorAi.locator('#draftText').fill('Reviewed browser test note. Missing information remains not provided.');
+    await doctorAi.getByRole('button', { name: 'Save reviewed edits' }).click();
+    await doctorAi.getByRole('button', { name: 'Approve draft' }).waitFor({ state: 'enabled' });
+    doctorAi.once('dialog', dialog => dialog.accept());
+    await doctorAi.getByRole('button', { name: 'Approve draft' }).click();
+    await doctorAi.getByText(/Medical record #/).waitFor();
+    assert.equal(await doctorAi.locator('#draftText').isDisabled(), true, 'Approved documentation is locked in the browser');
     await doctorCtx.close();
+
+    const doctorMobileCtx = await sessionContext(browser, 'Doctor', 2, { width: 390, height: 844 });
+    const doctorMobile = await expectPage(doctorMobileCtx, '/doctor/ai_assistant.php', 'Doctor AI Documentation Assistant');
+    assert.equal(await doctorMobile.locator('#appointmentSelect').isVisible(), true, 'Doctor AI workspace is usable on a mobile viewport');
+    await doctorMobileCtx.close();
 
     // Mobile patient dashboard, drawer navigation, queue check-in and polling.
     const patientCtx = await sessionContext(browser, 'Patient', 3, { width: 390, height: 844 });
@@ -89,7 +105,7 @@ async function expectPage(context, path, heading) {
     assert.equal(deniedResponse.status(), 403, 'Patient is denied the admin queue page');
     await deniedCtx.close();
 
-    console.log('All Playwright desktop/mobile dashboard, queue and patient assistant checks passed.');
+    console.log('All Playwright desktop/mobile dashboard, queue, patient assistant and doctor documentation workflow checks passed.');
   } finally {
     await browser.close();
   }

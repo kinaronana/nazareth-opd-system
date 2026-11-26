@@ -19,13 +19,14 @@ try {
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $appointmentId = (int)($_GET['appointment_id'] ?? 0);
         if (!$appointmentId) doctorAiJson(422, ['error' => 'Select an appointment.']);
-        $stmt = $pdo->prepare("SELECT a.appointment_id,a.patient_id,a.appointment_date,a.appointment_time,a.reason,a.status,p.full_name,p.gender,p.dob FROM appointments a JOIN patients p ON p.patient_id=a.patient_id WHERE a.appointment_id=? AND a.doctor_id=?");
+        // Return only the minimum details needed by the documentation workspace.
+        $stmt = $pdo->prepare("SELECT a.appointment_id,a.appointment_date,a.appointment_time,a.status,p.full_name FROM appointments a JOIN patients p ON p.patient_id=a.patient_id WHERE a.appointment_id=? AND a.doctor_id=?");
         $stmt->execute([$appointmentId, $doctorId]);
         $current = $stmt->fetch();
         if (!$current) doctorAiJson(404, ['error' => 'Appointment not found in your assigned roster.']);
-        $history = $pdo->prepare("SELECT appointment_date,appointment_time,status,reason FROM appointments WHERE patient_id=? AND doctor_id=? AND appointment_id<>? ORDER BY appointment_date DESC,appointment_time DESC LIMIT 10");
-        $history->execute([(int)$current['patient_id'], $doctorId, $appointmentId]);
-        $drafts = $pdo->prepare("SELECT draft_id,draft_type,draft_text,status,created_at FROM doctor_ai_drafts WHERE appointment_id=? AND doctor_id=? ORDER BY draft_id DESC LIMIT 20");
+        $history = $pdo->prepare("SELECT appointment_date,appointment_time,status FROM appointments WHERE patient_id=(SELECT patient_id FROM appointments WHERE appointment_id=? AND doctor_id=?) AND doctor_id=? AND appointment_id<>? ORDER BY appointment_date DESC,appointment_time DESC LIMIT 10");
+        $history->execute([$appointmentId, $doctorId, $doctorId, $appointmentId]);
+        $drafts = $pdo->prepare("SELECT draft_id,draft_type,status,created_at,reviewed_at,approved_at,medical_record_id FROM doctor_ai_drafts WHERE appointment_id=? AND doctor_id=? ORDER BY draft_id DESC LIMIT 20");
         $drafts->execute([$appointmentId, $doctorId]);
         doctorAiJson(200, ['appointment'=>$current, 'history'=>$history->fetchAll(), 'drafts'=>$drafts->fetchAll(), 'csrf'=>$csrf]);
     }
@@ -34,21 +35,50 @@ try {
     if (!is_array($input) || !hash_equals($csrf, (string)($input['csrf'] ?? ''))) doctorAiJson(419, ['error'=>'Security token expired. Refresh and try again.']);
     $action = (string)($input['action'] ?? '');
     $draftId = (int)($input['draft_id'] ?? 0);
+
     if ($action === 'approve' || $action === 'review') {
         $text = trim((string)($input['draft_text'] ?? ''));
         if ($action === 'review' && ($text === '' || strlen($text) > 10000)) doctorAiJson(422, ['error'=>'Draft text must be between 1 and 10,000 characters.']);
         $pdo->beginTransaction();
-        $stmt = $pdo->prepare("SELECT draft_id,status FROM doctor_ai_drafts WHERE draft_id=? AND doctor_id=? FOR UPDATE");
+        $stmt = $pdo->prepare("SELECT draft_id,patient_id,appointment_id,draft_type,draft_text,status,reviewed_at,medical_record_id FROM doctor_ai_drafts WHERE draft_id=? AND doctor_id=? FOR UPDATE");
         $stmt->execute([$draftId, $doctorId]);
         $draft = $stmt->fetch();
         if (!$draft) { $pdo->rollBack(); doctorAiJson(404, ['error'=>'Draft not found.']); }
-        if ($draft['status'] === 'Approved') { $pdo->rollBack(); doctorAiJson(409, ['error'=>'This draft has already been approved.']); }
-        if ($action === 'review') $pdo->prepare("UPDATE doctor_ai_drafts SET draft_text=? WHERE draft_id=? AND doctor_id=?")->execute([$text,$draftId,$doctorId]);
-        else $pdo->prepare("UPDATE doctor_ai_drafts SET status='Approved',reviewed_at=CURRENT_TIMESTAMP WHERE draft_id=? AND doctor_id=?")->execute([$draftId,$doctorId]);
-        $pdo->prepare('INSERT INTO doctor_ai_audit(draft_id,doctor_id,action) VALUES(?,?,?)')->execute([$draftId,$doctorId,$action==='approve'?'Approved':'Reviewed']);
+        if ($draft['status'] === 'Approved') { $pdo->rollBack(); doctorAiJson(409, ['error'=>'Approved drafts are locked and cannot be changed.']); }
+
+        if ($action === 'review') {
+            $pdo->prepare("UPDATE doctor_ai_drafts SET draft_text=?,status='Reviewed',reviewed_at=CURRENT_TIMESTAMP WHERE draft_id=? AND doctor_id=?")
+                ->execute([$text,$draftId,$doctorId]);
+            $pdo->prepare("INSERT INTO doctor_ai_audit(draft_id,doctor_id,action) VALUES(?,?,'Reviewed')")->execute([$draftId,$doctorId]);
+            $pdo->commit();
+            doctorAiJson(200, ['message'=>'Reviewed edits saved. You can now approve this draft.']);
+        }
+
+        if ($draft['status'] !== 'Reviewed' || empty($draft['reviewed_at'])) {
+            $pdo->rollBack();
+            doctorAiJson(409, ['error'=>'Save your reviewed edits before approving this draft.']);
+        }
+        if (!empty($draft['medical_record_id'])) {
+            $pdo->rollBack();
+            doctorAiJson(409, ['error'=>'A medical record has already been created for this draft.']);
+        }
+
+        // Approval and creation of the medical record are one atomic transaction.
+        $title = substr((string)$draft['draft_type'] . ' — AI-reviewed', 0, 150);
+        $recordType = (string)$draft['draft_type'];
+        $record = $pdo->prepare("INSERT INTO medical_records(patient_id,doctor_id,appointment_id,record_type,title,description,record_date) VALUES(?,?,?,?,?,?,CURDATE())");
+        $record->execute([(int)$draft['patient_id'],$doctorId,(int)$draft['appointment_id'],$recordType,$title,(string)$draft['draft_text']]);
+        $recordId = (int)$pdo->lastInsertId();
+        $pdo->prepare("UPDATE doctor_ai_drafts SET status='Approved',approved_at=CURRENT_TIMESTAMP,medical_record_id=? WHERE draft_id=? AND doctor_id=? AND status='Reviewed'")
+            ->execute([$recordId,$draftId,$doctorId]);
+        if ($pdo->query('SELECT ROW_COUNT()')->fetchColumn() != 1) {
+            throw new RuntimeException('Draft approval state changed unexpectedly.');
+        }
+        $pdo->prepare("INSERT INTO doctor_ai_audit(draft_id,doctor_id,action) VALUES(?,?,'Approved')")->execute([$draftId,$doctorId]);
         $pdo->commit();
-        doctorAiJson(200, ['message'=>$action==='approve'?'Draft approved.':'Draft updated and saved for review.']);
+        doctorAiJson(200, ['message'=>'Draft approved and saved to the patient medical record.','medical_record_id'=>$recordId]);
     }
+
     if ($action !== 'generate') doctorAiJson(422, ['error'=>'Unsupported action.']);
     $appointmentId = (int)($input['appointment_id'] ?? 0);
     $type = (string)($input['draft_type'] ?? '');

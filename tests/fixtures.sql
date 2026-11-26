@@ -54,6 +54,21 @@ CREATE TABLE appointments (
   FOREIGN KEY (doctor_id) REFERENCES doctors(doctor_id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE medical_records (
+  record_id INT AUTO_INCREMENT PRIMARY KEY,
+  patient_id INT NOT NULL,
+  doctor_id INT NOT NULL,
+  appointment_id INT NULL,
+  record_type VARCHAR(50) NOT NULL DEFAULT 'Consultation Note',
+  title VARCHAR(150) NOT NULL,
+  description TEXT NOT NULL,
+  record_date DATE NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (patient_id) REFERENCES patients(patient_id) ON DELETE CASCADE,
+  FOREIGN KEY (doctor_id) REFERENCES doctors(doctor_id) ON DELETE CASCADE,
+  FOREIGN KEY (appointment_id) REFERENCES appointments(appointment_id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
 CREATE TABLE notifications (
   notification_id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
