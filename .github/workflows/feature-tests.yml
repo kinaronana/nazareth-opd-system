@@ -1,0 +1,59 @@
+name: Feature Branch Tests
+
+on:
+  push:
+    branches:
+      - feature/intelligent-opd-platform
+  pull_request:
+    branches:
+      - feature/intelligent-opd-platform
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  php-and-mysql-tests:
+    name: PHP syntax and isolated MySQL integration
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: test-root-password
+          MYSQL_DATABASE: nazareth_opd_test
+          MYSQL_USER: opd_test
+          MYSQL_PASSWORD: opd_test_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root -ptest-root-password"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    env:
+      OPD_TEST_DB_HOST: 127.0.0.1
+      OPD_TEST_DB_NAME: nazareth_opd_test
+      OPD_TEST_DB_USER: opd_test
+      OPD_TEST_DB_PASSWORD: opd_test_password
+    steps:
+      - name: Check out feature branch
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_mysql
+          coverage: none
+
+      - name: Lint all PHP files
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            php -l "$file"
+          done < <(find . -type f -name '*.php' -not -path './.git/*' -print0)
+
+      - name: Run isolated MySQL integration tests
+        run: php tests/integration.php
