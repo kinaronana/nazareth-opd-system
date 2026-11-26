@@ -33,12 +33,21 @@ if ($path === '/__test/gemini') {
     }
     $allText = '';
     foreach ($contents as $turn) $allText .= ' ' . (string)($turn['parts'][0]['text'] ?? '');
-    $reply = count($contents) >= 3 && stripos($allText, 'How do I book an appointment?') !== false
-        ? 'You previously asked how to book an appointment. Choose Book Appointment from the patient menu.'
-        : (stripos($allText, 'book an appointment') !== false
-            ? 'To book an appointment, sign in and choose Book Appointment from the patient menu.'
-            : 'I can help you navigate the patient portal. Use fictional details only in this school project.');
-    echo json_encode(['candidates' => [['content' => ['parts' => [['text' => $reply]]]]]]);
+    $lastText = strtolower((string)($contents[count($contents) - 1]['parts'][0]['text'] ?? ''));
+    if (strpos($lastText, 'mock blocked response') !== false) {
+        echo json_encode(['candidates' => [['finishReason' => 'SAFETY', 'content' => ['parts' => []]]]]);
+        exit;
+    }
+    if (strpos($lastText, 'mock unsafe response') !== false) {
+        $reply = 'You likely have pneumonia. Take 2 tablets of ibuprofen now.';
+    } else {
+        $reply = count($contents) >= 3 && stripos($allText, 'How do I book an appointment?') !== false
+            ? 'You previously asked how to book an appointment. Choose Book Appointment from the patient menu.'
+            : (stripos($allText, 'book an appointment') !== false
+                ? 'To book an appointment, sign in and choose Book Appointment from the patient menu.'
+                : 'I can help you navigate the patient portal. Use fictional details only in this school project.');
+    }
+    echo json_encode(['candidates' => [['finishReason' => 'STOP', 'content' => ['parts' => [['text' => $reply]]]]]]);
     exit;
 }
 return false;
