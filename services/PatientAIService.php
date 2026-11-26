@@ -2,11 +2,54 @@
 declare(strict_types=1);
 require_once __DIR__ . '/AISafety.php';
 
+/**
+ * Conservative local escalation for additional high-risk descriptions. This is
+ * a safety net, not a symptom checker or a substitute for emergency services.
+ */
+function patientSupportNeedsEmergencyEscalation(string $message): bool
+{
+    if (aiEmergencyWarning($message)) return true;
+    $text = strtolower($message);
+    $patterns = [
+        '/\\b(heart attack|cardiac arrest|stopped breathing|not breathing|gasping for air)\\b/',
+        '/\\b(blue lips|turning blue|severe breathlessness|cannot get enough air)\\b/',
+        '/\\b(cannot wake|can.t wake|won.t wake up|unresponsive|collapsed and not responding)\\b/',
+        '/\\b(heavy bleeding|won.t stop bleeding|bleeding that won.t stop)\\b/',
+        '/\\b(took too many pills|taken an overdose|intentional overdose|poisoned myself)\\b/',
+        '/\\b(plan to kill myself|going to end my life|about to hurt myself)\\b/',
+        '/\\b(throat is closing|tongue is swelling|face is swelling.*breath)\\b/'
+    ];
+    foreach ($patterns as $pattern) {
+        if (preg_match($pattern, $text)) return true;
+    }
+    return false;
+}
+
+/**
+ * Do not trust model instructions to enforce clinical boundaries. Reject a
+ * response if it appears to diagnose or direct medication/treatment.
+ */
+function patientSupportResponseIsClinicallyUnsafe(string $response): bool
+{
+    $text = strtolower(strip_tags($response));
+    $patterns = [
+        '/\\b(you have|you are suffering from|you likely have|this is likely|my diagnosis|diagnosis is)\\b/',
+        '/\\b(prescribe|prescription for you|take\\s+\\d+\\s*(mg|mcg|ml|tablets?))\\b/',
+        '/\\b(dosage|dose of|increase your dose|decrease your dose|double your dose)\\b/',
+        '/\\b(start taking|stop taking|continue taking|switch to)\\b.{0,50}\\b(medicine|medication|drug|tablet|antibiotic|painkiller)\\b/',
+        '/\\b(ibuprofen|paracetamol|acetaminophen|aspirin|amoxicillin)\\b/'
+    ];
+    foreach ($patterns as $pattern) {
+        if (preg_match($pattern, $text)) return true;
+    }
+    return false;
+}
+
 /** Server-side Gemini adapter. The key is read only from the process environment. */
 function generatePatientSupportResponse(string $message, array $history = []): array
 {
     // Emergency detection always runs locally before any third-party request.
-    if (aiEmergencyWarning($message)) return patientSupportReply($message);
+    if (patientSupportNeedsEmergencyEscalation($message)) return patientSupportReply('emergency symptoms');
 
     $apiKey = trim((string)(getenv('GEMINI_API_KEY') ?: ''));
     if ($apiKey === '' || !function_exists('curl_init')) return patientSupportReply($message);
@@ -49,8 +92,10 @@ departments, queue check-in, and how to navigate the portal. Use only informatio
 the user's message and conversation; do not invent hospital policies, doctor availability,
 appointment status, diagnoses, test results, or records.
 
-This is general information, not clinical care. Never diagnose, identify a likely condition,
-recommend or prescribe medicines, give dosage instructions, or tell a user to start/stop treatment.
+This is general information, not clinical care. Never diagnose, identify or suggest a likely condition, interpret symptoms as a specific disease,
+recommend or prescribe medicines, give dosage instructions, or tell a user to start/stop/change treatment.
+Do not name a medicine as a recommendation, even if the user asks for one. If asked about treatment,
+medication, or what a symptom means, explain that a qualified clinician must assess this.
 For symptom descriptions, respond empathetically, ask concise questions only to help the user
 organise what to tell a qualified clinician, and encourage appropriate professional assessment.
 If symptoms sound severe, rapidly worsening, or potentially life-threatening, tell the user to seek
@@ -64,7 +109,7 @@ PROMPT;
     $payload = [
         'systemInstruction' => ['parts' => [['text' => $systemInstruction]]],
         'contents' => $contents,
-        'generationConfig' => ['temperature' => 0.3, 'maxOutputTokens' => 350],
+        'generationConfig' => ['maxOutputTokens' => 350],
         'safetySettings' => [
             ['category' => 'HARM_CATEGORY_HARASSMENT', 'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'],
             ['category' => 'HARM_CATEGORY_HATE_SPEECH', 'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'],
@@ -101,13 +146,20 @@ PROMPT;
         return patientSupportReply($message);
     }
     $decoded = json_decode($raw, true);
-    $generated = $decoded['candidates'][0]['content']['parts'][0]['text'] ?? '';
+    if (!is_array($decoded) || !empty($decoded['promptFeedback']['blockReason'])) {
+        return patientSupportReply($message);
+    }
+    $candidate = $decoded['candidates'][0] ?? null;
+    if (!is_array($candidate)) return patientSupportReply($message);
+    $finishReason = (string)($candidate['finishReason'] ?? '');
+    if ($finishReason !== '' && $finishReason !== 'STOP') return patientSupportReply($message);
+    $generated = $candidate['content']['parts'][0]['text'] ?? '';
     if (!is_string($generated)) return patientSupportReply($message);
 
     $generated = trim(strip_tags($generated));
     $generated = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $generated) ?? '';
     $generated = function_exists('mb_substr') ? mb_substr($generated, 0, 1400) : substr($generated, 0, 1400);
-    if ($generated === '') return patientSupportReply($message);
+    if ($generated === '' || patientSupportResponseIsClinicallyUnsafe($generated)) return patientSupportReply($message);
 
     $symptomPattern = '/\b(symptom|pain|feel|sick|dizzy|fever|headache|cough|nausea|unwell)\b/i';
     $flag = preg_match($symptomPattern, $message) ? 'symptom_guidance' : null;
