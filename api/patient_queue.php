@@ -11,7 +11,7 @@ $userId = (int)($_SESSION['user_id'] ?? 0);
 if (!$userId || !in_array($role, ['Patient','Doctor','Admin'], true)) {
     http_response_code(401); echo json_encode(['error'=>'Please sign in again.']); exit;
 }
-function queueResponse(int $status, array $data): never {
+function queueResponse(int $status, array $data): void {
     http_response_code($status); echo json_encode($data); exit;
 }
 function currentDoctorId(PDO $pdo, int $userId): int {
