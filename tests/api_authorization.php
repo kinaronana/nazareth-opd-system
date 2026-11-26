@@ -110,7 +110,7 @@ $pdo->exec("UPDATE appointments SET appointment_date=CURDATE() WHERE appointment
 $r = httpRequest('/api/patient_queue.php', ['action'=>'check_in','appointment_id'=>$patientAppointmentId,'csrf'=>'ci-valid-csrf-token'], $patient);
 $first = decoded($r);
 assertApi($r['status'] === 201 && isset($first['queue_id']), 'Patient can check in for their approved appointment today');
-$r = httpRequest('/api/patient_queue.php', ['action'=>'check_in','appointment_id'=>1,'csrf'=>'ci-valid-csrf-token'], $patient);
+$r = httpRequest('/api/patient_queue.php', ['action'=>'check_in','appointment_id'=>$patientAppointmentId,'csrf'=>'ci-valid-csrf-token'], $patient);
 assertApi($r['status'] === 200 && (int)(decoded($r)['queue_id'] ?? 0) === (int)$first['queue_id'], 'Repeated patient check-in returns the existing queue entry');
 
 // Authenticated page middleware blocks the wrong role.
