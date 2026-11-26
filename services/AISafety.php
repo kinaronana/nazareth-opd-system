@@ -10,9 +10,12 @@ function aiEmergencyWarning(string $message): bool {
  ] as $pattern) if (preg_match($pattern, $text)) return true;
  return false;
 }
+function patientSupportEmergencyReply(): array {
+ return ['text'=>'Your message may describe an emergency. Please seek emergency medical help now or contact your local emergency number. Do not wait for a chat response. If possible, ask someone nearby to help you.','safety_flag'=>'emergency_warning'];
+}
 function patientSupportReply(string $message): array {
  $text = strtolower(trim($message));
- if (aiEmergencyWarning($text)) return ['text'=>'Your message may describe an emergency. Please seek emergency medical help now or contact your local emergency number. Do not wait for a chat response. If possible, ask someone nearby to help you.','safety_flag'=>'emergency_warning'];
+ if (aiEmergencyWarning($text)) return patientSupportEmergencyReply();
  if (preg_match('/\b(book|booking|appointment|schedule|visit)\b/',$text)) return ['text'=>'To book an appointment, sign in and choose “Book Appointment” from the patient menu. Select an available department or doctor, choose a date and time, enter a brief reason, and submit. Review the request under “My Appointments”. Hospital staff handle approval.','safety_flag'=>null];
  if (preg_match('/\b(register|sign ?up|create an account)\b/',$text)) return ['text'=>'Choose “Register” on the sign-in page and complete the form. After creating your account, sign in to request an appointment. This is a school-project demonstration; use fictional details only.','safety_flag'=>null];
  if (preg_match('/\b(cancel|reschedule|change.*appointment)\b/',$text)) return ['text'=>'Open “My Appointments” to review your bookings. If cancellation or rescheduling is unavailable, contact reception. This assistant does not change appointments.','safety_flag'=>null];
