@@ -45,7 +45,7 @@ jobs:
       # Local mock endpoint exercises the provider adapter without external calls.
       GEMINI_API_KEY: ci-mock-gemini-key
       GEMINI_MODEL: gemini-3.5-flash-lite
-      OPD_GEMINI_API_URL: http://127.0.0.1:8080/__test/gemini
+      OPD_GEMINI_API_URL: http://127.0.0.1:8081/__test/gemini
     steps:
       - name: Check out feature branch
         uses: actions/checkout@v4
@@ -68,19 +68,34 @@ jobs:
       - name: Run isolated MySQL integration tests
         run: php tests/integration.php
 
-      - name: Start isolated PHP application server
+      - name: Start isolated PHP application and Gemini mock servers
         run: |
+          # The built-in PHP server is single-threaded. Run the mock provider
+          # on a separate port so the API request can call it without deadlock.
           php -S 127.0.0.1:8080 -t . tests/http_router.php > /tmp/opd-php-server.log 2>&1 &
           echo $! > /tmp/opd-php-server.pid
+          php -S 127.0.0.1:8081 -t . tests/http_router.php > /tmp/opd-gemini-mock.log 2>&1 &
+          echo $! > /tmp/opd-gemini-mock.pid
           for attempt in $(seq 1 30); do
+            app_ready=0
+            mock_ready=0
             if curl --silent --fail -X POST -H 'Content-Type: application/json' \
               -d '{"sid":"00000000000000000000000000000000","role":"Admin","user_id":1}' \
               http://127.0.0.1:8080/__test/session >/dev/null; then
+              app_ready=1
+            fi
+            if curl --silent --fail -X POST -H 'Content-Type: application/json' \
+              -d '{"sid":"11111111111111111111111111111111","role":"Admin","user_id":1}' \
+              http://127.0.0.1:8081/__test/session >/dev/null; then
+              mock_ready=1
+            fi
+            if [ "$app_ready" = 1 ] && [ "$mock_ready" = 1 ]; then
               exit 0
             fi
             sleep 1
           done
           cat /tmp/opd-php-server.log
+          cat /tmp/opd-gemini-mock.log
           exit 1
 
       - name: Exercise authenticated PHP APIs and role restrictions
