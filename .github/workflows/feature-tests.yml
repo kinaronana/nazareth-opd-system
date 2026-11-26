@@ -36,6 +36,12 @@ jobs:
       OPD_TEST_DB_NAME: nazareth_opd_test
       OPD_TEST_DB_USER: opd_test
       OPD_TEST_DB_PASSWORD: opd_test_password
+      # The real application config consumes OPD_DB_*; point it at the same
+      # disposable CI database so API tests can never fall back to production.
+      OPD_DB_HOST: 127.0.0.1
+      OPD_DB_NAME: nazareth_opd_test
+      OPD_DB_USERNAME: opd_test
+      OPD_DB_PASSWORD: opd_test_password
     steps:
       - name: Check out feature branch
         uses: actions/checkout@v4
@@ -63,11 +69,15 @@ jobs:
           php -S 127.0.0.1:8080 -t . tests/http_router.php > /tmp/opd-php-server.log 2>&1 &
           echo $! > /tmp/opd-php-server.pid
           for attempt in $(seq 1 30); do
-            if curl --silent --fail http://127.0.0.1:8080/__test/session >/dev/null; then
-              break
+            if curl --silent --fail -X POST -H 'Content-Type: application/json' \
+              -d '{"sid":"00000000000000000000000000000000","role":"Admin","user_id":1}' \
+              http://127.0.0.1:8080/__test/session >/dev/null; then
+              exit 0
             fi
             sleep 1
           done
+          cat /tmp/opd-php-server.log
+          exit 1
 
       - name: Exercise authenticated PHP APIs and role restrictions
         run: php tests/api_authorization.php
