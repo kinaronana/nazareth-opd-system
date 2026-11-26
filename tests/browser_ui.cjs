@@ -59,7 +59,12 @@ async function expectPage(context, path, heading) {
     });
     doctorAi.once('dialog', dialog => dialog.accept());
     await doctorAi.getByRole('button', { name: 'Approve draft' }).click();
-    await doctorAi.getByText(/Medical record #/).waitFor();
+    await doctorAi.locator('#draftStatus').waitFor({ state: 'visible' });
+    await doctorAi.waitForFunction(() => {
+      const status = document.querySelector('#draftStatus')?.textContent || '';
+      return status.includes('Draft approved and saved to the patient medical record.')
+        && /Medical record #\\d+ created\\./.test(status);
+    });
     assert.equal(await doctorAi.locator('#draftText').isDisabled(), true, 'Approved documentation is locked in the browser');
     await doctorCtx.close();
 
