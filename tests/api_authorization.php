@@ -49,6 +49,11 @@ $pdo = new PDO(
     [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
 );
 
+// Create a fresh approved booking for patient one because the database-level
+// integration suite has already completed its own appointment fixture.
+$pdo->prepare("INSERT INTO appointments (patient_id,doctor_id,appointment_date,appointment_time,reason,status) VALUES (1,1,CURDATE(),'12:00:00','Authenticated API check-in booking','Approved')")->execute();
+$patientAppointmentId = (int)$pdo->lastInsertId();
+
 // Add a second fictional clinician and an appointment owned by patient two.
 $pdo->exec("INSERT INTO users (username,password,email,role_id,status) VALUES ('ci_doctor_two','test-hash','doctor2@example.test',2,'Active')");
 $secondDoctorUserId = (int)$pdo->lastInsertId();
@@ -88,7 +93,7 @@ $r = httpRequest('/api/patient_queue.php', ['action'=>'call','queue_id'=>$otherD
 assertApi($r['status'] === 403, 'Patient is denied staff-only queue actions');
 $r = httpRequest('/api/patient_queue.php', ['action'=>'check_in','appointment_id'=>2,'csrf'=>'ci-valid-csrf-token'], $patient);
 assertApi($r['status'] === 422, 'Patient cannot check in another patient appointment');
-$r = httpRequest('/api/patient_queue.php', ['action'=>'check_in','appointment_id'=>1], $patient);
+$r = httpRequest('/api/patient_queue.php', ['action'=>'check_in','appointment_id'=>$patientAppointmentId], $patient);
 assertApi($r['status'] === 419, 'Queue API rejects missing CSRF token');
 
 // A doctor cannot manage another clinician's queue.
@@ -98,10 +103,10 @@ $r = httpRequest('/api/patient_queue.php', ['action'=>'set_priority','queue_id'=
 assertApi($r['status'] === 200, 'Assigned doctor can update their own queue priority');
 
 // Patient check-in is limited to today's approved appointment and is idempotent.
-$pdo->exec("UPDATE appointments SET appointment_date=DATE_ADD(CURDATE(), INTERVAL 1 DAY) WHERE appointment_id=1");
-$r = httpRequest('/api/patient_queue.php', ['action'=>'check_in','appointment_id'=>1,'csrf'=>'ci-valid-csrf-token'], $patient);
+$pdo->exec("UPDATE appointments SET appointment_date=DATE_ADD(CURDATE(), INTERVAL 1 DAY) WHERE appointment_id={$patientAppointmentId}");
+$r = httpRequest('/api/patient_queue.php', ['action'=>'check_in','appointment_id'=>$patientAppointmentId,'csrf'=>'ci-valid-csrf-token'], $patient);
 assertApi($r['status'] === 422, 'Patient cannot check in before the appointment date');
-$pdo->exec('UPDATE appointments SET appointment_date=CURDATE() WHERE appointment_id=1');
+$pdo->exec("UPDATE appointments SET appointment_date=CURDATE() WHERE appointment_id={$patientAppointmentId}");
 $r = httpRequest('/api/patient_queue.php', ['action'=>'check_in','appointment_id'=>1,'csrf'=>'ci-valid-csrf-token'], $patient);
 $first = decoded($r);
 assertApi($r['status'] === 201 && isset($first['queue_id']), 'Patient can check in for their approved appointment today');
