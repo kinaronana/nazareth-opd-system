@@ -58,6 +58,8 @@ $unsafeResponses = [
     'You likely have pneumonia.',
     'Take 2 tablets of ibuprofen now.',
     'Start taking antibiotics for five days.',
+    'Stop taking medicines without speaking to your clinician.',
+    'Switch to painkillers for the symptoms.',
     'Double your dose if the pain continues.'
 ];
 foreach ($unsafeResponses as $unsafeResponse) {
