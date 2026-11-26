@@ -107,7 +107,7 @@ $pdo->exec("UPDATE appointments SET appointment_date=DATE_ADD(CURDATE(), INTERVA
 $r = httpRequest('/api/patient_queue.php', ['action'=>'check_in','appointment_id'=>$patientAppointmentId,'csrf'=>'ci-valid-csrf-token'], $patient);
 assertApi($r['status'] === 422, 'Patient cannot check in before the appointment date');
 $pdo->exec("UPDATE appointments SET appointment_date=CURDATE() WHERE appointment_id={$patientAppointmentId}");
-$r = httpRequest('/api/patient_queue.php', ['action'=>'check_in','appointment_id'=>1,'csrf'=>'ci-valid-csrf-token'], $patient);
+$r = httpRequest('/api/patient_queue.php', ['action'=>'check_in','appointment_id'=>$patientAppointmentId,'csrf'=>'ci-valid-csrf-token'], $patient);
 $first = decoded($r);
 assertApi($r['status'] === 201 && isset($first['queue_id']), 'Patient can check in for their approved appointment today');
 $r = httpRequest('/api/patient_queue.php', ['action'=>'check_in','appointment_id'=>1,'csrf'=>'ci-valid-csrf-token'], $patient);
