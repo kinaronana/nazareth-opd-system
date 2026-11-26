@@ -49,7 +49,7 @@ function patientSupportResponseIsClinicallyUnsafe(string $response): bool
 function generatePatientSupportResponse(string $message, array $history = []): array
 {
     // Emergency detection always runs locally before any third-party request.
-    if (patientSupportNeedsEmergencyEscalation($message)) return patientSupportReply('emergency symptoms');
+    if (patientSupportNeedsEmergencyEscalation($message)) return patientSupportEmergencyReply();
 
     $apiKey = trim((string)(getenv('GEMINI_API_KEY') ?: ''));
     if ($apiKey === '' || !function_exists('curl_init')) return patientSupportReply($message);
