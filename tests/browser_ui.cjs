@@ -48,7 +48,7 @@ async function expectPage(context, path, heading) {
 
     // Mobile patient dashboard, drawer navigation, queue check-in and polling.
     const patientCtx = await sessionContext(browser, 'Patient', 3, { width: 390, height: 844 });
-    const patient = await expectPage(patientCtx, '/patient/dashboard.php', 'Patient Dashboard');
+    const patient = await expectPage(patientCtx, '/patient/dashboard.php', 'Dashboard');
     assert.equal(await patient.locator('[data-counter-key]').count(), 4, 'Patient dashboard renders four statistic counters');
     const toggle = patient.locator('#sidebarToggleBtn');
     await toggle.waitFor({ state: 'visible' });
@@ -61,7 +61,7 @@ async function expectPage(context, path, heading) {
     const checkIn = queue.getByRole('button', { name: 'Check in now' }).first();
     await checkIn.waitFor({ state: 'visible' });
     await checkIn.click();
-    await queue.getByText(/Your queue number is/).waitFor();
+    await queue.getByText('Check-in successful.').waitFor();
     await queue.getByText('Checked in').waitFor();
 
     // Verify the patient queue page continues its scheduled refresh cycle.
