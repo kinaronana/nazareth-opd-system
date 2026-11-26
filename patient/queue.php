@@ -5,8 +5,7 @@ enforceRoleAccess(['Patient']);
 $activePage = 'queue';
 if (empty($_SESSION['queue_csrf'])) $_SESSION['queue_csrf']=bin2hex(random_bytes(32));
 $csrf=$_SESSION['queue_csrf'];
-require_once __DIR__ . '/../includes/header.php';
-require_once __DIR__ . '/../includes/navbar.php';
+require_once __DIR__ . '/../includes/patient_layout_header.php';
 ?>
 <div class="container my-5">
  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4"><div><h2 class="fw-bold text-primary">My Patient Queue</h2><p class="text-muted mb-0">Check in for today's approved appointment and follow your place in line.</p></div><span class="badge text-bg-success p-2">Live updates every 15 seconds</span></div>
@@ -31,4 +30,4 @@ async function checkIn(id){
 function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
 loadPatientQueue();setInterval(loadPatientQueue,15000);
 </script>
-<?php require_once __DIR__ . '/../includes/footer.php'; ?>
+<?php require_once __DIR__ . '/../includes/patient_layout_footer.php'; ?>
