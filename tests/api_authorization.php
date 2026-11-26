@@ -120,4 +120,44 @@ assertApi($r['status'] === 403, 'Patient cannot open the Admin queue page');
 $r = httpRequest('/doctor/queue.php', null, $patient);
 assertApi($r['status'] === 403, 'Patient cannot open the Doctor queue page');
 
+// Patient Support Assistant API: ownership, CSRF, persistence and deletion.
+$r = httpRequest('/api/patient_ai_assistant.php', null, $patient);
+$patientAssistant = decoded($r);
+assertApi($r['status'] === 200 && isset($patientAssistant['conversations'], $patientAssistant['csrf']), 'Patient can list assistant conversations and receive a CSRF token');
+$patientAiCsrf = $patientAssistant['csrf'];
+
+$r = httpRequest('/api/patient_ai_assistant.php', ['action'=>'create','csrf'=>$patientAiCsrf], $patient);
+$createdConversation = decoded($r);
+$conversationId = (int)($createdConversation['conversation_id'] ?? 0);
+assertApi($r['status'] === 201 && $conversationId > 0, 'Patient can create an assistant conversation');
+
+$r = httpRequest('/api/patient_ai_assistant.php', ['action'=>'send','conversation_id'=>$conversationId,'message'=>'How do I book an appointment?','csrf'=>$patientAiCsrf], $patient);
+assertApi($r['status'] === 200 && !empty(decoded($r)['reply']), 'Patient can send a message and receive the prototype response');
+
+$r = httpRequest('/api/patient_ai_assistant.php?conversation_id=' . $conversationId, null, $patient);
+$storedConversation = decoded($r);
+$storedMessages = $storedConversation['messages'] ?? [];
+assertApi($r['status'] === 200 && count($storedMessages) === 2 && ($storedMessages[0]['sender'] ?? '') === 'patient' && ($storedMessages[1]['sender'] ?? '') === 'assistant', 'Patient and assistant messages are persisted in conversation history');
+
+$r = httpRequest('/api/patient_ai_assistant.php?conversation_id=' . $conversationId, null, $patientTwo);
+assertApi($r['status'] === 404, 'A different patient cannot read another patient conversation');
+$r = httpRequest('/api/patient_ai_assistant.php', ['action'=>'delete','conversation_id'=>$conversationId,'csrf'=>$patientAssistant['csrf']], $patientTwo);
+assertApi($r['status'] === 404, 'A different patient cannot delete another patient conversation');
+
+$r = httpRequest('/api/patient_ai_assistant.php', ['action'=>'send','conversation_id'=>$conversationId,'message'=>'Test without token'], $patient);
+assertApi($r['status'] === 419, 'Patient assistant API rejects requests without a CSRF token');
+
+$r = httpRequest('/api/patient_ai_assistant.php', ['action'=>'create','csrf'=>'ci-valid-csrf-token'], $doctor);
+assertApi($r['status'] === 403, 'Doctor cannot access the patient assistant API');
+$r = httpRequest('/api/patient_ai_assistant.php', ['action'=>'create','csrf'=>'ci-valid-csrf-token'], $admin);
+assertApi($r['status'] === 403, 'Admin cannot access the patient assistant API');
+
+$r = httpRequest('/api/patient_ai_assistant.php', ['action'=>'unsupported','conversation_id'=>$conversationId,'csrf'=>$patientAiCsrf], $patient);
+assertApi($r['status'] === 422, 'Patient assistant API rejects unsupported actions');
+
+$r = httpRequest('/api/patient_ai_assistant.php', ['action'=>'delete','conversation_id'=>$conversationId,'csrf'=>$patientAiCsrf], $patient);
+assertApi($r['status'] === 200, 'Conversation owner can delete their conversation');
+$r = httpRequest('/api/patient_ai_assistant.php?conversation_id=' . $conversationId, null, $patient);
+assertApi($r['status'] === 404, 'Deleted assistant conversation and its message history are no longer accessible');
+
 echo "All authenticated PHP API checks passed.\n";
