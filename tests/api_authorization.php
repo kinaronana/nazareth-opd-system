@@ -144,6 +144,14 @@ $storedConversation = decoded($r);
 $storedMessages = $storedConversation['messages'] ?? [];
 assertApi($r['status'] === 200 && count($storedMessages) === 4 && ($storedMessages[0]['sender'] ?? '') === 'patient' && ($storedMessages[1]['sender'] ?? '') === 'assistant', 'Patient and assistant messages are persisted in conversation history');
 
+$r = httpRequest('/api/patient_ai_assistant.php', ['action'=>'send','conversation_id'=>$conversationId,'message'=>'mock unsafe response','csrf'=>$patientAiCsrf], $patient);
+$unsafeFallback = decoded($r)['reply'] ?? '';
+assertApi($r['status'] === 200 && strpos($unsafeFallback, 'I can help with registration') !== false && stripos($unsafeFallback, 'pneumonia') === false, 'Clinically unsafe Gemini output is discarded in favour of the local safe fallback');
+
+$r = httpRequest('/api/patient_ai_assistant.php', ['action'=>'send','conversation_id'=>$conversationId,'message'=>'mock blocked response','csrf'=>$patientAiCsrf], $patient);
+$blockedFallback = decoded($r)['reply'] ?? '';
+assertApi($r['status'] === 200 && strpos($blockedFallback, 'I can help with registration') !== false, 'Gemini safety-blocked response uses the local fallback');
+
 $r = httpRequest('/api/patient_ai_assistant.php?conversation_id=' . $conversationId, null, $patientTwo);
 assertApi($r['status'] === 404, 'A different patient cannot read another patient conversation');
 $otherPatientAssistant = decoded(httpRequest('/api/patient_ai_assistant.php', null, $patientTwo));
