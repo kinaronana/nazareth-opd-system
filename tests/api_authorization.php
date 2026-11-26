@@ -141,7 +141,10 @@ assertApi($r['status'] === 200 && count($storedMessages) === 2 && ($storedMessag
 
 $r = httpRequest('/api/patient_ai_assistant.php?conversation_id=' . $conversationId, null, $patientTwo);
 assertApi($r['status'] === 404, 'A different patient cannot read another patient conversation');
-$r = httpRequest('/api/patient_ai_assistant.php', ['action'=>'delete','conversation_id'=>$conversationId,'csrf'=>$patientAssistant['csrf']], $patientTwo);
+$otherPatientAssistant = decoded(httpRequest('/api/patient_ai_assistant.php', null, $patientTwo));
+$otherPatientAiCsrf = $otherPatientAssistant['csrf'] ?? '';
+assertApi($otherPatientAiCsrf !== '', 'Second patient receives their own assistant CSRF token');
+$r = httpRequest('/api/patient_ai_assistant.php', ['action'=>'delete','conversation_id'=>$conversationId,'csrf'=>$otherPatientAiCsrf], $patientTwo);
 assertApi($r['status'] === 404, 'A different patient cannot delete another patient conversation');
 
 $r = httpRequest('/api/patient_ai_assistant.php', ['action'=>'send','conversation_id'=>$conversationId,'message'=>'Test without token'], $patient);
