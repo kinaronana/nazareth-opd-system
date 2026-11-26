@@ -204,11 +204,12 @@ assertApi($review['status'] === 200 && $reviewedState['status'] === 'Reviewed' &
 $approve = httpRequest('/api/doctor_ai_assistant.php', ['action'=>'approve','draft_id'=>$doctorAiDraftId,'csrf'=>$doctorAiCsrf], $doctor);
 $approvedData = decoded($approve);
 $storedRecord = $pdo->query('SELECT record_id,patient_id,doctor_id,appointment_id,record_type,title,description FROM medical_records WHERE record_id=' . (int)($approvedData['medical_record_id'] ?? 0))->fetch(PDO::FETCH_ASSOC);
-$approvedState = $pdo->query('SELECT status,reviewed_at,approved_at,medical_record_id FROM doctor_ai_drafts WHERE draft_id=' . $doctorAiDraftId)->fetch(PDO::FETCH_ASSOC);
+$approvedState = $pdo->query('SELECT status,patient_id,doctor_id,appointment_id,reviewed_at,approved_at,medical_record_id FROM doctor_ai_drafts WHERE draft_id=' . $doctorAiDraftId)->fetch(PDO::FETCH_ASSOC);
 $auditActions = $pdo->query('SELECT action FROM doctor_ai_audit WHERE draft_id=' . $doctorAiDraftId . ' ORDER BY audit_id')->fetchAll(PDO::FETCH_COLUMN);
 assertApi($approve['status'] === 200 && !empty($approvedData['medical_record_id']) && $storedRecord && $storedRecord['description'] === 'Reviewed fictional consultation note. Missing fields remain not provided.', 'Approval creates the corresponding patient medical record using the reviewed text');
 assertApi($approvedState['status'] === 'Approved' && !empty($approvedState['reviewed_at']) && !empty($approvedState['approved_at']) && (int)$approvedState['medical_record_id'] === (int)$storedRecord['record_id'], 'Approved draft stores distinct review and approval timestamps and its linked record');
-assertApi($storedRecord['patient_id'] === '1' && $storedRecord['doctor_id'] === '1' && $storedRecord['appointment_id'] === '1' && $auditActions === ['Created','Reviewed','Approved'], 'Medical record ownership and ordered audit trail are preserved');
+assertApi($storedRecord && (int)$storedRecord['patient_id'] === (int)$approvedState['patient_id'] && (int)$storedRecord['doctor_id'] === (int)$approvedState['doctor_id'] && (int)$storedRecord['appointment_id'] === (int)$approvedState['appointment_id'], 'Medical record is linked to the exact patient, doctor and appointment on the approved draft');
+assertApi($auditActions === ['Created','Reviewed','Approved'], 'Draft audit trail records creation, review and approval in order');
 $approvedAgain = httpRequest('/api/doctor_ai_assistant.php', ['action'=>'approve','draft_id'=>$doctorAiDraftId,'csrf'=>$doctorAiCsrf], $doctor);
 $editApproved = httpRequest('/api/doctor_ai_assistant.php', ['action'=>'review','draft_id'=>$doctorAiDraftId,'draft_text'=>'Attempted post-approval edit','csrf'=>$doctorAiCsrf], $doctor);
 assertApi($approvedAgain['status'] === 409 && $editApproved['status'] === 409 && (int)$pdo->query('SELECT COUNT(*) FROM medical_records')->fetchColumn() === 1, 'Approved drafts cannot be approved twice or edited and cannot create duplicate medical records');
