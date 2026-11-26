@@ -36,7 +36,7 @@ function patientSupportResponseIsClinicallyUnsafe(string $response): bool
         '/\b(you have|you are suffering from|you likely have|this is likely|my diagnosis|diagnosis is)\b/',
         '/\b(prescribe|prescription for you|take\s+\\d+\s*(mg|mcg|ml|tablets?))\b/',
         '/\b(dosage|dose of|increase your dose|decrease your dose|double your dose)\b/',
-        '/\b(start taking|stop taking|continue taking|switch to)\b.{0,50}\b(medicine|medication|drug|tablet|antibiotic|painkiller)\b/',
+        '/\b(start taking|stop taking|continue taking|switch to)\b.{0,50}\b(medicines?|medications?|drugs?|tablets?|antibiotics?|painkillers?)\b/',
         '/\b(ibuprofen|paracetamol|acetaminophen|aspirin|amoxicillin)\b/'
     ];
     foreach ($patterns as $pattern) {
