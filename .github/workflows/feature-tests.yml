@@ -187,3 +187,64 @@ jobs:
                   except Exception:
                       pass
           PY
+
+  gemini-live-api-connectivity:
+    name: Real Gemini API connectivity (one-time diagnostic)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/feature/intelligent-opd-platform' && contains(github.event.head_commit.message, '[gemini-connectivity-check]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
+    steps:
+      - name: Verify real Gemini generateContent request
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          import sys
+          import urllib.error
+          import urllib.request
+
+          api_key = os.environ.get("GEMINI_API_KEY", "").strip()
+          model = os.environ.get("GEMINI_MODEL", "").strip() or "gemini-3.5-flash-lite"
+          if not api_key:
+              print("FAIL: GEMINI_API_KEY repository secret is missing.")
+              sys.exit(1)
+
+          url = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent"
+          payload = {
+              "contents": [{"parts": [{"text": "Reply with exactly: GEMINI_CONNECTION_OK"}]}],
+              "generationConfig": {"temperature": 0, "maxOutputTokens": 24}
+          }
+          request = urllib.request.Request(
+              url,
+              data=json.dumps(payload).encode("utf-8"),
+              headers={"Content-Type": "application/json", "x-goog-api-key": api_key},
+              method="POST"
+          )
+          try:
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  result = json.loads(response.read().decode("utf-8"))
+                  candidates = result.get("candidates") or []
+                  text = " ".join(
+                      part.get("text", "")
+                      for candidate in candidates
+                      for part in candidate.get("content", {}).get("parts", [])
+                  ).strip()
+                  if response.status != 200 or not text:
+                      print("FAIL: Gemini returned no generated text.")
+                      sys.exit(1)
+                  print("PASS: Authenticated HTTPS request to Google Gemini succeeded.")
+                  print("PASS: Model '" + model + "' returned generated content.")
+                  print("PASS: API key and response content were not logged.")
+          except urllib.error.HTTPError as error:
+              # Never print the provider response body; it may contain diagnostic details.
+              print("FAIL: Gemini API returned HTTP " + str(error.code) + ". Check key permissions, API enablement, quota, and model availability.")
+              sys.exit(1)
+          except Exception as error:
+              print("FAIL: Gemini connectivity test failed (" + type(error).__name__ + ").")
+              sys.exit(1)
+          PY
