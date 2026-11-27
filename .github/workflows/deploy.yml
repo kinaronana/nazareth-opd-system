@@ -11,35 +11,63 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get latest code
-        uses: actions/checkout@v6
-      - name: Create production database configuration
+        uses: actions/checkout@v4
+
+      - name: Create server-side production configuration
         shell: bash
+        env:
+          OPD_DB_HOST: ${{ secrets.OPD_DB_HOST }}
+          OPD_DB_NAME: ${{ secrets.OPD_DB_NAME }}
+          OPD_DB_USERNAME: ${{ secrets.OPD_DB_USERNAME }}
+          OPD_DB_PASSWORD: ${{ secrets.OPD_DB_PASSWORD }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
         run: |
-          cat > config/production.php <<'PHP'
-          <?php
-          return [
-              'host' => '${{ secrets.OPD_DB_HOST }}',
-              'name' => '${{ secrets.OPD_DB_NAME }}',
-              'user' => '${{ secrets.OPD_DB_USERNAME }}',
-              'password' => '${{ secrets.OPD_DB_PASSWORD }}',
+          php -r '
+          $keys = ["OPD_DB_HOST", "OPD_DB_NAME", "OPD_DB_USERNAME", "OPD_DB_PASSWORD"];
+          $config = [
+              "host" => getenv("OPD_DB_HOST") ?: "",
+              "name" => getenv("OPD_DB_NAME") ?: "",
+              "user" => getenv("OPD_DB_USERNAME") ?: "",
+              "password" => getenv("OPD_DB_PASSWORD") ?: "",
+              "gemini_api_key" => getenv("GEMINI_API_KEY") ?: "",
+              "gemini_model" => getenv("GEMINI_MODEL") ?: "gemini-3.5-flash-lite",
           ];
-          PHP
-      - name: Upload the complete application to InfinityFree
+          foreach ($keys as $key) {
+              if ($config[["host", "name", "user", "password"][array_search($key, $keys)]] === "") {
+                  fwrite(STDERR, "A required OPD database secret is missing.\n");
+                  exit(1);
+              }
+          }
+          file_put_contents("config/production.php", "<?php\nreturn " . var_export($config, true) . ";\n", LOCK_EX);
+          '
+
+      - name: Upload production application files to InfinityFree
         uses: SamKirkland/FTP-Deploy-Action@v4.4.0
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftp
+          protocol: ftps
           port: 21
           local-dir: ./
           server-dir: ./htdocs/
           state-name: .ftp-deploy-sync-state-live-v4.json
           log-level: verbose
           timeout: 120000
+          dangerous-clean-slate: false
           exclude: |
             **/.git*
             **/.git*/**
             **/node_modules/**
             **/.github/**
-          dangerous-clean-slate: false
+            **/tests/**
+            **/*.sql
+            **/.env
+            **/.env.*
+            **/README*
+            **/phpunit.xml*
+            **/playwright.config.*
+            **/package.json
+            **/package-lock.json
+            **/.ftp-deploy-sync-state-*

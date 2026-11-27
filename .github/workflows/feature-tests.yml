@@ -1,0 +1,250 @@
+name: Feature Branch Tests
+
+on:
+  push:
+    branches:
+      - feature/intelligent-opd-platform
+  pull_request:
+    branches:
+      - feature/intelligent-opd-platform
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  php-and-database-tests:
+    name: PHP ${{ matrix.php_version }} / ${{ matrix.database_name }} integration
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php_version: ['8.2', '8.4']
+        database_image: ['mysql:8.0', 'mariadb:11.4']
+        include:
+          - database_image: mysql:8.0
+            database_name: MySQL 8.0
+          - database_image: mariadb:11.4
+            database_name: MariaDB 11.4
+    services:
+      database:
+        image: ${{ matrix.database_image }}
+        env:
+          MYSQL_ROOT_PASSWORD: test-root-password
+          MYSQL_DATABASE: nazareth_opd_test
+          MYSQL_USER: opd_test
+          MYSQL_PASSWORD: opd_test_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="if [ \"${{ matrix.database_name }}\" = \"MariaDB 11.4\" ]; then healthcheck.sh --connect --innodb_initialized; else mysqladmin ping -h 127.0.0.1 -u root -ptest-root-password; fi"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=30
+    env:
+      OPD_TEST_DB_HOST: 127.0.0.1
+      OPD_TEST_DB_NAME: nazareth_opd_test
+      OPD_TEST_DB_USER: opd_test
+      OPD_TEST_DB_PASSWORD: opd_test_password
+      OPD_DB_HOST: 127.0.0.1
+      OPD_DB_NAME: nazareth_opd_test
+      OPD_DB_USERNAME: opd_test
+      OPD_DB_PASSWORD: opd_test_password
+      GEMINI_API_KEY: ci-mock-gemini-key
+      GEMINI_MODEL: gemini-3.5-flash-lite
+      OPD_GEMINI_API_URL: http://127.0.0.1:8081/__test/gemini
+    steps:
+      - name: Check out feature branch
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php_version }}
+          extensions: pdo_mysql, curl
+          coverage: none
+
+      - name: Verify required PHP extensions
+        run: |
+          php -r 'foreach (["pdo_mysql", "curl", "session", "json"] as $ext) {
+            if (!extension_loaded($ext)) {
+              fwrite(STDERR, "Missing PHP extension: $ext\\n");
+              exit(1);
+            }
+          }'
+
+      - name: Lint all PHP files
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            php -l "$file"
+          done < <(find . -type f -name '*.php' -not -path './.git/*' -print0)
+
+      - name: Check deployment-readiness safeguards
+        run: php tests/deployment_readiness_static.php
+
+      - name: Run isolated database integration tests
+        run: php tests/integration.php
+
+      - name: Start isolated PHP application and Gemini mock servers
+        run: |
+          php -S 127.0.0.1:8080 -t . tests/http_router.php > /tmp/opd-php-server.log 2>&1 &
+          echo $! > /tmp/opd-php-server.pid
+          php -S 127.0.0.1:8081 -t . tests/http_router.php > /tmp/opd-gemini-mock.log 2>&1 &
+          echo $! > /tmp/opd-gemini-mock.pid
+          for attempt in $(seq 1 30); do
+            app_ready=0
+            mock_ready=0
+            if curl --silent --fail -X POST -H 'Content-Type: application/json' \
+              -d '{"sid":"00000000000000000000000000000000","role":"Admin","user_id":1}' \
+              http://127.0.0.1:8080/__test/session >/dev/null; then
+              app_ready=1
+            fi
+            if curl --silent --fail -X POST -H 'Content-Type: application/json' \
+              -d '{"sid":"11111111111111111111111111111111","role":"Admin","user_id":1}' \
+              http://127.0.0.1:8081/__test/session >/dev/null; then
+              mock_ready=1
+            fi
+            if [ "$app_ready" = 1 ] && [ "$mock_ready" = 1 ]; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/opd-php-server.log
+          cat /tmp/opd-gemini-mock.log
+          exit 1
+
+      - name: Exercise authenticated PHP APIs and role restrictions
+        run: php tests/api_authorization.php
+
+      - name: Seed isolated browser-test appointment
+        run: php tests/browser_seed.php
+
+      - name: Set up Node.js for browser tests
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright and Chromium
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+
+      - name: Run desktop and mobile browser tests
+        run: node tests/browser_ui.cjs
+
+  infinityfree-explicit-ftps-connectivity:
+    name: InfinityFree Explicit FTPS connectivity (manual only)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/feature/intelligent-opd-platform'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    env:
+      FTP_SERVER: ${{ secrets.FTP_SERVER }}
+      FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+      FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+    steps:
+      - name: Verify Explicit FTPS connection and authentication (read-only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import ftplib
+          import os
+          import ssl
+          import sys
+
+          host = os.environ.get("FTP_SERVER", "").strip()
+          username = os.environ.get("FTP_USERNAME", "")
+          password = os.environ.get("FTP_PASSWORD", "")
+
+          if not host or not username or not password:
+              print("FAIL: One or more required FTP repository secrets are missing.")
+              sys.exit(1)
+
+          ftp = ftplib.FTP_TLS(context=ssl.create_default_context(), timeout=20)
+          try:
+              ftp.connect(host=host, port=21, timeout=20)
+              ftp.auth()
+              ftp.login(user=username, passwd=password)
+              ftp.prot_p()
+              ftp.pwd()
+              print("PASS: Explicit FTPS TLS negotiation succeeded.")
+              print("PASS: FTP authentication succeeded.")
+              print("PASS: Encrypted data-channel protection was accepted.")
+              print("PASS: Read-only PWD command succeeded.")
+          except Exception as exc:
+              message = str(exc)
+              for secret in (password, username, host):
+                  if secret:
+                      message = message.replace(secret, "[REDACTED]")
+              print(f"FAIL: {type(exc).__name__}: {message}")
+              sys.exit(1)
+          finally:
+              try:
+                  ftp.quit()
+              except Exception:
+                  try:
+                      ftp.close()
+                  except Exception:
+                      pass
+          PY
+
+  gemini-live-api-connectivity:
+    name: Real Gemini API connectivity (one-time diagnostic)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/feature/intelligent-opd-platform' && contains(github.event.head_commit.message, '[gemini-connectivity-check]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
+    steps:
+      - name: Verify real Gemini generateContent request
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          import sys
+          import urllib.error
+          import urllib.request
+
+          api_key = os.environ.get("GEMINI_API_KEY", "").strip()
+          model = os.environ.get("GEMINI_MODEL", "").strip() or "gemini-3.5-flash-lite"
+          if not api_key:
+              print("FAIL: GEMINI_API_KEY repository secret is missing.")
+              sys.exit(1)
+
+          url = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent"
+          payload = {
+              "contents": [{"parts": [{"text": "Reply with exactly: GEMINI_CONNECTION_OK"}]}],
+              "generationConfig": {"temperature": 0, "maxOutputTokens": 24}
+          }
+          request = urllib.request.Request(
+              url,
+              data=json.dumps(payload).encode("utf-8"),
+              headers={"Content-Type": "application/json", "x-goog-api-key": api_key},
+              method="POST"
+          )
+          try:
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  result = json.loads(response.read().decode("utf-8"))
+                  candidates = result.get("candidates") or []
+                  text = " ".join(
+                      part.get("text", "")
+                      for candidate in candidates
+                      for part in candidate.get("content", {}).get("parts", [])
+                  ).strip()
+                  if response.status != 200 or not text:
+                      print("FAIL: Gemini returned no generated text.")
+                      sys.exit(1)
+                  print("PASS: Authenticated HTTPS request to Google Gemini succeeded.")
+                  print("PASS: Model '" + model + "' returned generated content.")
+                  print("PASS: API key and response content were not logged.")
+          except urllib.error.HTTPError as error:
+              # Never print the provider response body; it may contain diagnostic details.
+              print("FAIL: Gemini API returned HTTP " + str(error.code) + ". Check key permissions, API enablement, quota, and model availability.")
+              sys.exit(1)
+          except Exception as error:
+              print("FAIL: Gemini connectivity test failed (" + type(error).__name__ + ").")
+              sys.exit(1)
+          PY

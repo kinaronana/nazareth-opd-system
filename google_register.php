@@ -3,9 +3,7 @@
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/config/google_auth.php';
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/config/session.php';
 
 $pending = $_SESSION['google_pending'] ?? null;
 if (!$pending || empty($pending['email'])) {

@@ -1,4 +1,17 @@
 RewriteEngine On
+
+# Never expose development folders or server-side configuration over HTTP.
+RewriteRule ^(?:config|tests)(?:/|$) - [F,L,NC]
+<FilesMatch "(?i)(^\.env(?:\..*)?$|^production\.php$|\.sql$|\.log$|\.ini$)">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME}\.php -f
 RewriteRule ^([^\.]+)$ $1.php [NC,L]

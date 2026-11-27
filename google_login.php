@@ -1,8 +1,6 @@
 <?php
 // Step 1: send the visitor to Google's account chooser.
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/config/session.php';
 require_once __DIR__ . '/config/google_auth.php';
 
 if (!googleConfigured()) {

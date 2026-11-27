@@ -1,8 +1,6 @@
 <?php
 // Initialize or catch the active session container safely
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/config/session.php';
 
 // Unset all active memory session indices cleanly
 $_SESSION = array();

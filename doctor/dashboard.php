@@ -25,21 +25,14 @@ try {
     $docStmt->execute([$_SESSION['user_id']]);
     $doctorProfile = $docStmt->fetch();
 
-    // Fallback block if logged in via unmapped development parameters
+    // Never fall back to another clinician's profile: dashboard data must
+    // belong only to the doctor linked to the authenticated account.
     if (!$doctorProfile) {
-        $doctorProfile = $pdo->query("
-            SELECT d.doctor_id, d.name, d.specialization, d.profile_photo, dept.department_name 
-            FROM doctors d 
-            INNER JOIN departments dept ON d.department_id = dept.department_id 
-            LIMIT 1
-        ")->fetch();
-        
-        if (!$doctorProfile) {
-            die("<div class='container my-5 alert alert-danger fw-bold'>System Profile Conflict: Your account hasn't been mapped to a clinical physician file record yet.</div>");
-        }
+        http_response_code(403);
+        die("<div class='container my-5 alert alert-danger fw-bold'>Your doctor account is not linked to a clinical profile. Please contact the hospital administrator.</div>");
     }
-    
-    $doctor_id = $doctorProfile['doctor_id'];
+
+    $doctor_id = (int) $doctorProfile['doctor_id'];
 
     // Approve / Reject a pending appointment.
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['appointment_action'], $_POST['appointment_id'])) {
@@ -112,6 +105,7 @@ require_once $project_root . '/includes/navbar.php';
                         <small class="text-muted font-monospace">Clinical Token: #DOC-00<?php echo $doctor_id; ?></small>
                     </div>
                     <div class="ms-md-auto d-grid d-md-flex gap-2">
+                        <a href="/doctor/ai_assistant.php" class="btn btn-outline-success fw-bold"><i class="fa-solid fa-wand-magic-sparkles me-1"></i>AI Documentation</a>
                         <a href="messages.php" class="btn btn-outline-secondary fw-bold">
                             <i class="fa-solid fa-envelope me-1"></i>Messages
                         </a>
@@ -131,7 +125,7 @@ require_once $project_root . '/includes/navbar.php';
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
                         <h6 class="text-muted text-uppercase small font-weight-bold">Pending Approval</h6>
-                        <h3 class="fw-bold m-0 text-dark"><?php echo $pendingCount; ?></h3>
+                        <h3 class="fw-bold m-0 text-dark" data-counter-key="pending"><?php echo $pendingCount; ?></h3>
                     </div>
                     <div class="text-warning"><i class="fa-solid fa-clock fa-2x"></i></div>
                 </div>
@@ -142,7 +136,7 @@ require_once $project_root . '/includes/navbar.php';
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
                         <h6 class="text-muted text-uppercase small font-weight-bold">Confirmed Sessions</h6>
-                        <h3 class="fw-bold m-0 text-dark"><?php echo $approvedCount; ?></h3>
+                        <h3 class="fw-bold m-0 text-dark" data-counter-key="approved"><?php echo $approvedCount; ?></h3>
                     </div>
                     <div class="text-success"><i class="fa-solid fa-circle-check fa-2x"></i></div>
                 </div>
@@ -153,7 +147,7 @@ require_once $project_root . '/includes/navbar.php';
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
                         <h6 class="text-muted text-uppercase small font-weight-bold">Completed Visits</h6>
-                        <h3 class="fw-bold m-0 text-dark"><?php echo $completedCount; ?></h3>
+                        <h3 class="fw-bold m-0 text-dark" data-counter-key="completed"><?php echo $completedCount; ?></h3>
                     </div>
                     <div class="text-info"><i class="fa-solid fa-hand-holding-medical fa-2x"></i></div>
                 </div>
@@ -254,6 +248,8 @@ require_once $project_root . '/includes/navbar.php';
         </div>
     </div>
 </div>
+
+<script src="/assets/js/dashboard-live.js" defer></script>
 
 <?php
 require_once $project_root . '/includes/footer.php';
