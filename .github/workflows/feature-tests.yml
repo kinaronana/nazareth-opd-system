@@ -37,7 +37,7 @@ jobs:
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="if [ \"${{ matrix.database_name }}\" = \"MariaDB 11.4\" ]; then healthcheck.sh --connect --innodb_initialized; else mysqladmin ping -h 127.0.0.1 -u root -ptest-root-password; fi"
+          --health-cmd="if [ \\"${{ matrix.database_name }}\\" = \\"MariaDB 11.4\\" ]; then healthcheck.sh --connect --innodb_initialized; else mysqladmin ping -h 127.0.0.1 -u root -ptest-root-password; fi"
           --health-interval=5s
           --health-timeout=5s
           --health-retries=30
@@ -96,13 +96,13 @@ jobs:
           for attempt in $(seq 1 30); do
             app_ready=0
             mock_ready=0
-            if curl --silent --fail -X POST -H 'Content-Type: application/json' \
-              -d '{"sid":"00000000000000000000000000000000","role":"Admin","user_id":1}' \
+            if curl --silent --fail -X POST -H 'Content-Type: application/json' \\
+              -d '{"sid":"00000000000000000000000000000000","role":"Admin","user_id":1}' \\
               http://127.0.0.1:8080/__test/session >/dev/null; then
               app_ready=1
             fi
-            if curl --silent --fail -X POST -H 'Content-Type: application/json' \
-              -d '{"sid":"11111111111111111111111111111111","role":"Admin","user_id":1}' \
+            if curl --silent --fail -X POST -H 'Content-Type: application/json' \\
+              -d '{"sid":"11111111111111111111111111111111","role":"Admin","user_id":1}' \\
               http://127.0.0.1:8081/__test/session >/dev/null; then
               mock_ready=1
             fi
@@ -131,3 +131,60 @@ jobs:
 
       - name: Run desktop and mobile browser tests
         run: node tests/browser_ui.cjs
+
+  infinityfree-explicit-ftps-connectivity:
+    name: InfinityFree Explicit FTPS connectivity (manual only)
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    env:
+      FTP_SERVER: ${{ secrets.FTP_SERVER }}
+      FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+      FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+    steps:
+      - name: Verify Explicit FTPS connection and authentication (read-only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import ftplib
+          import os
+          import ssl
+          import sys
+
+          host = os.environ.get("FTP_SERVER", "").strip()
+          username = os.environ.get("FTP_USERNAME", "")
+          password = os.environ.get("FTP_PASSWORD", "")
+
+          if not host or not username or not password:
+              print("FAIL: One or more required FTP repository secrets are missing.")
+              sys.exit(1)
+
+          ftp = ftplib.FTP_TLS(context=ssl.create_default_context(), timeout=20)
+          try:
+              ftp.connect(host=host, port=21, timeout=20)
+              ftp.auth()
+              ftp.login(user=username, passwd=password)
+              ftp.prot_p()
+              response = ftp.pwd()
+              print("PASS: Explicit FTPS TLS negotiation succeeded.")
+              print("PASS: FTP authentication succeeded.")
+              print("PASS: Encrypted data-channel protection was accepted.")
+              print("PASS: Read-only PWD command succeeded.")
+              print("Server working directory returned; value withheld.")
+          except Exception as exc:
+              message = str(exc)
+              for secret in (password, username, host):
+                  if secret:
+                      message = message.replace(secret, "[REDACTED]")
+              print(f"FAIL: {type(exc).__name__}: {message}")
+              sys.exit(1)
+          finally:
+              try:
+                  ftp.quit()
+              except Exception:
+                  try:
+                      ftp.close()
+                  except Exception:
+                      pass
+          PY
