@@ -63,9 +63,9 @@ readinessCheck(
     'Gemini readiness reports only boolean configuration diagnostics'
 );
 readinessCheck(
-    strpos($readinessEndpoint, "trim($productionGeminiKey) !== ''") !== false
-        && strpos($readinessEndpoint, "trim($environmentGeminiKey) !== ''") !== false
-        && strpos($readinessEndpoint, "preg_match('/^[A-Za-z0-9._-]{1,100}$/', $configuredGeminiModel)") !== false,
+    strpos($readinessEndpoint, 'trim($productionGeminiKey) !== \'\'') !== false
+        && strpos($readinessEndpoint, 'trim($environmentGeminiKey) !== \'\'') !== false
+        && strpos($readinessEndpoint, 'preg_match(\'/^[A-Za-z0-9._-]{1,100}$/\', $configuredGeminiModel)') !== false,
     'Gemini key presence and model validity are checked without returning secret values'
 );
 readinessCheck(
