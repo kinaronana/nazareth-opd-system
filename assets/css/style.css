@@ -155,3 +155,13 @@ body,body.bg-light{color:var(--opd-ink);background-color:#f7fbfd!important;backg
   .container.my-5 > .row.g-4 > [class*="col-"] > .card {transition:none}
 }
 
+
+/* Reference-inspired dashboard analytics cards and responsive chart canvases. */
+.opd-analytics .card{background:rgba(255,255,255,.97);border:1px solid rgba(205,229,237,.9)!important;border-radius:18px!important;box-shadow:0 12px 30px rgba(22,93,123,.09)!important}
+.opd-chart-kicker{display:block;color:#20aaa9;font-size:.68rem;font-weight:800;letter-spacing:.12em;margin-bottom:.35rem}
+.opd-chart-icon{width:40px;height:40px;border-radius:13px;display:inline-flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,#1685c5,#63b8e2);box-shadow:0 6px 14px rgba(22,133,197,.2);flex:0 0 auto}
+.opd-chart-icon.teal{background:linear-gradient(135deg,#159b9b,#56c9b2);box-shadow:0 6px 14px rgba(32,170,169,.2)}
+.opd-chart-wrap{position:relative;width:100%;height:270px;min-width:0}
+.opd-chart-wrap.opd-chart-doughnut{height:270px;max-width:340px;margin:0 auto}
+.opd-analytics h5{color:#234252}
+@media(max-width:767.98px){.opd-chart-wrap{height:230px}.opd-chart-wrap.opd-chart-doughnut{height:245px}.opd-analytics .card{padding:1.1rem!important}}

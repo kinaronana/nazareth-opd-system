@@ -79,6 +79,17 @@ try {
     $rosterStmt->execute([$doctor_id]);
     $myRoster = $rosterStmt->fetchAll();
 
+    $doctorTrendStmt = $pdo->prepare("SELECT DATE_FORMAT(appointment_date, '%Y-%m') AS month_key, COUNT(*) AS total FROM appointments WHERE doctor_id = ? AND appointment_date >= DATE_SUB(CURDATE(), INTERVAL 5 MONTH) GROUP BY DATE_FORMAT(appointment_date, '%Y-%m') ORDER BY month_key");
+    $doctorTrendStmt->execute([$doctor_id]);
+    $doctorTrendRows = $doctorTrendStmt->fetchAll(PDO::FETCH_KEY_PAIR);
+    $doctorTrendLabels = []; $doctorTrendValues = [];
+    for ($i = 5; $i >= 0; $i--) { $month = date('Y-m', strtotime(date('Y-m-01') . " -$i months")); $doctorTrendLabels[] = date('M Y', strtotime($month . '-01')); $doctorTrendValues[] = (int)($doctorTrendRows[$month] ?? 0); }
+    $doctorStatusStmt = $pdo->prepare("SELECT status, COUNT(*) AS total FROM appointments WHERE doctor_id = ? GROUP BY status");
+    $doctorStatusStmt->execute([$doctor_id]);
+    $doctorStatusLabels = []; $doctorStatusValues = [];
+    foreach ($doctorStatusStmt->fetchAll() as $row) { $doctorStatusLabels[] = (string)$row['status']; $doctorStatusValues[] = (int)$row['total']; }
+
+
 } catch (Exception $e) {
     die("Data Query Operations Failure: Doctor dashboard data collection unaligned.");
 }
@@ -153,6 +164,17 @@ require_once $project_root . '/includes/navbar.php';
                 </div>
             </div>
         </div>
+    </div>
+
+    <div class="row g-4 mb-4 opd-analytics">
+        <div class="col-lg-8"><section class="card border-0 p-4 h-100">
+            <div class="d-flex justify-content-between align-items-start mb-3"><div><span class="opd-chart-kicker">MY CLINIC</span><h5 class="fw-bold mb-1">Appointment Activity</h5><p class="text-muted small mb-0">Your monthly bookings over the last six months</p></div><span class="opd-chart-icon"><i class="fa-solid fa-chart-line"></i></span></div>
+            <div class="opd-chart-wrap"><canvas id="myclinicTrend" role="img" aria-label="Appointment Activity"></canvas></div>
+        </section></div>
+        <div class="col-lg-4"><section class="card border-0 p-4 h-100">
+            <div class="d-flex justify-content-between align-items-start mb-3"><div><span class="opd-chart-kicker">STATUS MIX</span><h5 class="fw-bold mb-1">Visit Status</h5><p class="text-muted small mb-0">Your appointment distribution</p></div><span class="opd-chart-icon teal"><i class="fa-solid fa-chart-pie"></i></span></div>
+            <div class="opd-chart-wrap opd-chart-doughnut"><canvas id="myclinicStatus" role="img" aria-label="Visit Status"></canvas></div>
+        </section></div>
     </div>
 
     <!-- Clinical Patient Roster Registry Sheet -->
@@ -249,6 +271,15 @@ require_once $project_root . '/includes/navbar.php';
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script>(function(){if(!window.Chart)return;
+const labels=<?php echo json_encode($doctorTrendLabels, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>;
+const values=<?php echo json_encode($doctorTrendValues); ?>;
+const sl=<?php echo json_encode($doctorStatusLabels, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>;
+const sv=<?php echo json_encode($doctorStatusValues); ?>;
+const c=document.getElementById('myclinicTrend');if(c)new Chart(c,{type:'line',data:{labels,datasets:[{label:'Appointments',data:values,borderColor:'#1685c5',backgroundColor:'rgba(22,133,197,.14)',fill:true,tension:.38,borderWidth:3,pointRadius:4,pointBackgroundColor:'#20aaa9'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0},grid:{color:'rgba(35,66,82,.08)'}},x:{grid:{display:false}}}}});
+const d=document.getElementById('myclinicStatus');if(d)new Chart(d,{type:'doughnut',data:{labels:sl,datasets:[{data:sv,backgroundColor:['#20aaa9','#1685c5','#f0a45d','#8b78d6','#e76f79','#70b88a','#91a4b7'],borderColor:'#fff',borderWidth:3,hoverOffset:5}]},options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,padding:14}}}}});
+})();</script>
 <script src="/assets/js/dashboard-live.js" defer></script>
 
 <?php
