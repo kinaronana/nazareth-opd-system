@@ -79,6 +79,11 @@ try {
     $checks['database'] = ['ok' => false];
 }
 
+// Capture local readiness before adding the optional external-provider result.
+// An untested Gemini integration is informational on GET, not a local failure.
+$localFailed = array_filter($checks, static fn(array $check): bool => empty($check['ok']));
+$localReady = !$localFailed;
+
 $gemini = ['ok' => false, 'status' => 'not_tested'];
 if ($method === 'POST') {
     $input = json_decode((string) file_get_contents('php://input'), true);
@@ -126,6 +131,14 @@ if ($method === 'POST') {
         ];
     }
 }
+
 $checks['gemini'] = $gemini;
-$failed = array_filter($checks, static fn(array $check): bool => empty($check['ok']));
-readinessJson($failed ? 503 : 200, ['ready' => !$failed, 'csrf' => $csrf, 'checks' => $checks]);
+$overallReady = $localReady && ($method !== 'POST' || !empty($gemini['ok']));
+$responseStatus = $overallReady ? 200 : 503;
+readinessJson($responseStatus, [
+    'ready' => $overallReady,
+    'local_ready' => $localReady,
+    'overall_ready' => $overallReady,
+    'csrf' => $csrf,
+    'checks' => $checks,
+]);

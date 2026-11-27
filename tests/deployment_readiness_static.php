@@ -57,5 +57,11 @@ readinessCheck(
         && strpos($readinessEndpoint, "'gemini_api_key'") === false,
     'GET does not call Gemini and POST keeps the API key out of diagnostic output'
 );
+readinessCheck(
+    strpos($readinessEndpoint, '$localFailed = array_filter($checks') !== false
+        && strpos($readinessEndpoint, '$localReady = !$localFailed;') !== false
+        && strpos($readinessEndpoint, '$overallReady = $localReady && ($method !== \'POST\' || !empty($gemini[\'ok\']));') !== false,
+    'untested Gemini status is excluded from GET local readiness but POST tests provider connectivity'
+);
 
 echo "All deployment-readiness safeguard checks passed.\n";
