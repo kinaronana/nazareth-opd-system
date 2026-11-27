@@ -53,9 +53,37 @@ readinessCheck(
 );
 readinessCheck(
     strpos($readinessEndpoint, "'status' => 'not_tested'") !== false
-        && strpos($readinessEndpoint, 'x-goog-api-key: ') !== false
-        && strpos($readinessEndpoint, "'gemini_api_key'") === false,
-    'GET does not call Gemini and POST keeps the API key out of diagnostic output'
+        && strpos($readinessEndpoint, 'x-goog-api-key: ') !== false,
+    'GET does not call Gemini and POST sends credentials only in the server-side request header'
+);
+readinessCheck(
+    strpos($readinessEndpoint, "'key_in_production_config' => $productionGeminiKeyPresent") !== false
+        && strpos($readinessEndpoint, "'key_in_environment' => $environmentGeminiKeyPresent") !== false
+        && strpos($readinessEndpoint, "'model_valid' => $geminiModelValid") !== false,
+    'Gemini readiness reports only boolean configuration diagnostics'
+);
+readinessCheck(
+    strpos($readinessEndpoint, 'trim($productionGeminiKey) !== \'\'') !== false
+        && strpos($readinessEndpoint, 'trim($environmentGeminiKey) !== \'\'') !== false
+        && strpos($readinessEndpoint, 'preg_match(\'/^[A-Za-z0-9._-]{1,100}$/\', $configuredGeminiModel)') !== false,
+    'Gemini key presence and model validity are checked without returning secret values'
+);
+
+$databaseConfig = file_get_contents($root . '/config/database.php');
+readinessCheck(
+    strpos($databaseConfig, "trim((string) (getenv('GEMINI_API_KEY') ?: '')) === ''") !== false
+        && strpos($databaseConfig, "trim((string) (getenv('GEMINI_MODEL') ?: '')) === ''") !== false
+        && strpos($databaseConfig, 'putenv(\'GEMINI_API_KEY=\' . $productionConfig[\'gemini_api_key\'])') !== false
+        && strpos($databaseConfig, 'putenv(\'GEMINI_MODEL=\' . $productionConfig[\'gemini_model\'])') !== false,
+    'empty or unset Gemini environment variables fall back to populated production configuration'
+);
+readinessCheck(
+    strpos($readinessEndpoint, 'getenv(\'GEMINI_API_KEY\') ?: (') !== false
+        && strpos($readinessEndpoint, '$readinessProductionConfig') !== false
+        && strpos($readinessEndpoint, 'gemini_api_key') !== false
+        && strpos($readinessEndpoint, 'getenv(\'GEMINI_MODEL\') ?: (') !== false
+        && strpos($readinessEndpoint, 'gemini_model') !== false,
+    'live Gemini POST resolves key and model from production configuration when environment values are empty'
 );
 readinessCheck(
     strpos($readinessEndpoint, '$localFailed = array_filter($checks') !== false

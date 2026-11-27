@@ -15,7 +15,7 @@ permissions:
 jobs:
   php-and-database-tests:
     name: PHP ${{ matrix.php_version }} / ${{ matrix.database_name }} integration
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -135,7 +135,7 @@ jobs:
   infinityfree-explicit-ftps-connectivity:
     name: InfinityFree Explicit FTPS connectivity (manual only)
     if: github.event_name == 'push' && github.ref == 'refs/heads/feature/intelligent-opd-platform'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 2
     env:
       FTP_SERVER: ${{ secrets.FTP_SERVER }}
@@ -191,7 +191,7 @@ jobs:
   gemini-live-api-connectivity:
     name: Real Gemini API connectivity (one-time diagnostic)
     if: github.event_name == 'push' && github.ref == 'refs/heads/feature/intelligent-opd-platform' && contains(github.event.head_commit.message, '[gemini-connectivity-check]')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 2
     env:
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
