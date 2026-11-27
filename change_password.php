@@ -5,9 +5,7 @@
 
 require_once __DIR__ . '/config/database.php';
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/config/session.php';
 
 // Any authenticated user (Admin, Doctor, or Patient) may change their own password.
 if (!isset($_SESSION['user_id'])) {
@@ -44,6 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $updateStmt = $pdo->prepare("UPDATE users SET password = ? WHERE user_id = ?");
                 $updateStmt->execute([$hashedPassword, $_SESSION['user_id']]);
+                session_regenerate_id(true);
 
                 $success = "Your password has been updated successfully.";
             }
