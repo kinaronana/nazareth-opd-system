@@ -14,21 +14,21 @@ permissions:
 
 jobs:
   php-and-database-tests:
-    name: PHP ${{ matrix.php-version }} / ${{ matrix.database-name }} integration
+    name: PHP ${{ matrix.php_version }} / ${{ matrix.database_name }} integration
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        php-version: ['8.2', '8.4']
-        database-image: ['mysql:8.0', 'mariadb:11.4']
+        php_version: ['8.2', '8.4']
+        database_image: ['mysql:8.0', 'mariadb:11.4']
         include:
-          - database-image: mysql:8.0
-            database-name: MySQL 8.0
-          - database-image: mariadb:11.4
-            database-name: MariaDB 11.4
+          - database_image: mysql:8.0
+            database_name: MySQL 8.0
+          - database_image: mariadb:11.4
+            database_name: MariaDB 11.4
     services:
       database:
-        image: ${{ matrix.database-image }}
+        image: ${{ matrix.database_image }}
         env:
           MYSQL_ROOT_PASSWORD: test-root-password
           MYSQL_DATABASE: nazareth_opd_test
@@ -60,7 +60,7 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php-version }}
+          php-version: ${{ matrix.php_version }}
           extensions: pdo_mysql, curl
           coverage: none
 
