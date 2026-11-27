@@ -65,7 +65,13 @@ jobs:
           coverage: none
 
       - name: Verify required PHP extensions
-        run: php -r 'foreach (["pdo_mysql", "curl", "session", "json"] as $ext) { if (!extension_loaded($ext)) { fwrite(STDERR, "Missing PHP extension: $ext\n"); exit(1); } }'
+        run: |
+          php -r 'foreach (["pdo_mysql", "curl", "session", "json"] as $ext) {
+            if (!extension_loaded($ext)) {
+              fwrite(STDERR, "Missing PHP extension: $ext\\n");
+              exit(1);
+            }
+          }'
 
       - name: Lint all PHP files
         shell: bash
