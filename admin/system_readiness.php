@@ -17,8 +17,31 @@ $checks['https'] = ['ok' => $isHttps];
 $checks['session_httponly'] = ['ok' => (bool) ini_get('session.cookie_httponly')];
 $checks['session_secure'] = ['ok' => !$isHttps || (bool) ini_get('session.cookie_secure')];
 $checks['session_samesite'] = ['ok' => strtolower((string) ini_get('session.cookie_samesite')) === 'lax'];
-$path = (string) session_save_path();
-$checks['session_storage'] = ['ok' => $path === '' ? is_writable(sys_get_temp_dir()) : (is_dir($path) && is_writable($path))];
+$sessionStorageOk = false;
+if (session_status() === PHP_SESSION_ACTIVE) {
+    $originalSessionId = session_id();
+    $probeKey = '__opd_readiness_' . bin2hex(random_bytes(8));
+    $probeValue = bin2hex(random_bytes(16));
+    try {
+        $_SESSION[$probeKey] = $probeValue;
+        session_write_close();
+        session_id($originalSessionId);
+        if (session_start()) {
+            $sessionStorageOk = isset($_SESSION[$probeKey])
+                && is_string($_SESSION[$probeKey])
+                && hash_equals($probeValue, $_SESSION[$probeKey]);
+            unset($_SESSION[$probeKey]);
+            session_write_close();
+        }
+    } catch (Throwable $e) {
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            unset($_SESSION[$probeKey]);
+            session_write_close();
+        }
+        $sessionStorageOk = false;
+    }
+}
+$checks['session_storage'] = ['ok' => $sessionStorageOk];
 $productionConfig = dirname(__DIR__) . '/config/production.php';
 $checks['production_config'] = ['ok' => is_readable($productionConfig)];
 try {

@@ -81,6 +81,9 @@ jobs:
             php -l "$file"
           done < <(find . -type f -name '*.php' -not -path './.git/*' -print0)
 
+      - name: Check deployment-readiness safeguards
+        run: php tests/deployment_readiness_static.php
+
       - name: Run isolated database integration tests
         run: php tests/integration.php
 
