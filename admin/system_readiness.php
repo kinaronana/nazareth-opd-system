@@ -1,10 +1,32 @@
 <?php
 declare(strict_types=1);
+
 require_once dirname(__DIR__) . '/config/database.php';
 require_once dirname(__DIR__) . '/config/auth_middleware.php';
 enforceRoleAccess(['Admin']);
+
 header('Content-Type: application/json; charset=utf-8');
-header('Cache-Control: no-store');
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+
+function readinessJson(int $status, array $payload): void
+{
+    http_response_code($status);
+    echo json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+$method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
+if (!in_array($method, ['GET', 'POST'], true)) {
+    header('Allow: GET, POST');
+    readinessJson(405, ['error' => 'Method not allowed.']);
+}
+
+// A GET may inspect local readiness only. It must never make a billable external
+// provider request. It also issues the session-bound token for an intentional POST.
+if (empty($_SESSION['system_readiness_csrf'])) {
+    $_SESSION['system_readiness_csrf'] = bin2hex(random_bytes(32));
+}
+$csrf = (string) $_SESSION['system_readiness_csrf'];
 
 $checks = [];
 $checks['php_version'] = ['ok' => version_compare(PHP_VERSION, '8.2.0', '>='), 'value' => PHP_VERSION];
@@ -17,6 +39,7 @@ $checks['https'] = ['ok' => $isHttps];
 $checks['session_httponly'] = ['ok' => (bool) ini_get('session.cookie_httponly')];
 $checks['session_secure'] = ['ok' => !$isHttps || (bool) ini_get('session.cookie_secure')];
 $checks['session_samesite'] = ['ok' => strtolower((string) ini_get('session.cookie_samesite')) === 'lax'];
+
 $sessionStorageOk = false;
 if (session_status() === PHP_SESSION_ACTIVE) {
     $originalSessionId = session_id();
@@ -32,11 +55,16 @@ if (session_status() === PHP_SESSION_ACTIVE) {
                 && hash_equals($probeValue, $_SESSION[$probeKey]);
             unset($_SESSION[$probeKey]);
             session_write_close();
+            // Resume the authenticated session for the remainder of this request.
+            session_id($originalSessionId);
+            session_start();
         }
     } catch (Throwable $e) {
         if (session_status() === PHP_SESSION_ACTIVE) {
             unset($_SESSION[$probeKey]);
             session_write_close();
+            session_id($originalSessionId);
+            session_start();
         }
         $sessionStorageOk = false;
     }
@@ -51,32 +79,53 @@ try {
     $checks['database'] = ['ok' => false];
 }
 
-$key = trim((string) (getenv('GEMINI_API_KEY') ?: ''));
-$model = trim((string) (getenv('GEMINI_MODEL') ?: 'gemini-3.5-flash-lite'));
-$gemini = ['ok' => false, 'status' => 'not_configured'];
-if ($key !== '' && function_exists('curl_init') && preg_match('/^[A-Za-z0-9._-]{1,100}$/', $model)) {
-    $url = 'https://generativelanguage.googleapis.com/v1beta/models/' . rawurlencode($model) . ':generateContent';
-    $payload = json_encode([
-        'contents' => [['role' => 'user', 'parts' => [['text' => 'Reply with the single word OK.']]]],
-        'generationConfig' => ['maxOutputTokens' => 8],
-    ]);
-    $ch = curl_init($url);
-    curl_setopt_array($ch, [
-        CURLOPT_POST => true, CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_CONNECTTIMEOUT => 5, CURLOPT_TIMEOUT => 15,
-        CURLOPT_FOLLOWLOCATION => false,
-        CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'x-goog-api-key: ' . $key],
-        CURLOPT_POSTFIELDS => $payload,
-    ]);
-    $response = curl_exec($ch);
-    $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $curlError = curl_errno($ch);
-    curl_close($ch);
-    $decoded = is_string($response) ? json_decode($response, true) : null;
-    $ok = !$curlError && $status >= 200 && $status < 300 && isset($decoded['candidates'][0]);
-    $gemini = ['ok' => $ok, 'status' => $ok ? 'connected' : ($curlError ? 'connection_failed' : 'http_' . $status), 'model' => $model];
+$gemini = ['ok' => false, 'status' => 'not_tested'];
+if ($method === 'POST') {
+    $input = json_decode((string) file_get_contents('php://input'), true);
+    if (!is_array($input) || !hash_equals($csrf, (string) ($input['csrf'] ?? ''))) {
+        readinessJson(419, ['error' => 'Security token expired. Reload the readiness check and try again.']);
+    }
+
+    $lastTest = (int) ($_SESSION['system_readiness_gemini_last_test'] ?? 0);
+    if ($lastTest > time() - 30) {
+        readinessJson(429, ['error' => 'Please wait at least 30 seconds before testing Gemini again.']);
+    }
+
+    // Persist the throttle before making the external request.
+    $_SESSION['system_readiness_gemini_last_test'] = time();
+    session_write_close();
+    $key = trim((string) (getenv('GEMINI_API_KEY') ?: ''));
+    $model = trim((string) (getenv('GEMINI_MODEL') ?: 'gemini-3.5-flash-lite'));
+    $gemini = ['ok' => false, 'status' => 'not_configured'];
+    if ($key !== '' && function_exists('curl_init') && preg_match('/^[A-Za-z0-9._-]{1,100}$/', $model)) {
+        $url = 'https://generativelanguage.googleapis.com/v1beta/models/' . rawurlencode($model) . ':generateContent';
+        $payload = json_encode([
+            'contents' => [['role' => 'user', 'parts' => [['text' => 'Reply with the single word OK.']]]],
+            'generationConfig' => ['maxOutputTokens' => 8],
+        ]);
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_POST => true,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_TIMEOUT => 15,
+            CURLOPT_FOLLOWLOCATION => false,
+            CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'x-goog-api-key: ' . $key],
+            CURLOPT_POSTFIELDS => $payload,
+        ]);
+        $response = curl_exec($ch);
+        $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_errno($ch);
+        curl_close($ch);
+        $decoded = is_string($response) ? json_decode($response, true) : null;
+        $ok = !$curlError && $status >= 200 && $status < 300 && isset($decoded['candidates'][0]);
+        $gemini = [
+            'ok' => $ok,
+            'status' => $ok ? 'connected' : ($curlError ? 'connection_failed' : 'http_' . $status),
+            'model' => $model,
+        ];
+    }
 }
 $checks['gemini'] = $gemini;
 $failed = array_filter($checks, static fn(array $check): bool => empty($check['ok']));
-http_response_code($failed ? 503 : 200);
-echo json_encode(['ready' => !$failed, 'checks' => $checks], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+readinessJson($failed ? 503 : 200, ['ready' => !$failed, 'csrf' => $csrf, 'checks' => $checks]);

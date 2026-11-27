@@ -69,6 +69,18 @@ $doctor = newSession('Doctor', 2);
 $doctorTwo = newSession('Doctor', $secondDoctorUserId);
 $patient = newSession('Patient', 3);
 $patientTwo = newSession('Patient', 4);
+$patientTwo = newSession('Patient', 4);
+
+// Deployment-readiness diagnostics are admin-only. GET is read-only and must
+// not call Gemini; a POST without the session-bound CSRF token is rejected.
+$r = httpRequest('/admin/system_readiness.php', null, $admin);
+$readiness = decoded($r);
+assertApi(isset($readiness['checks']['gemini']) && ($readiness['checks']['gemini']['status'] ?? '') === 'not_tested' && !empty($readiness['csrf']), 'Readiness GET performs local checks without invoking Gemini and issues a CSRF token');
+$r = httpRequest('/admin/system_readiness.php', ['action'=>'test_gemini'], $admin);
+assertApi($r['status'] === 419, 'Readiness Gemini test rejects POST requests without a valid CSRF token');
+$r = httpRequest('/admin/system_readiness.php', null, $doctor);
+assertApi($r['status'] === 403, 'Non-admin users cannot access deployment-readiness diagnostics');
+
 
 
 // Admin-only appointment predictions API.

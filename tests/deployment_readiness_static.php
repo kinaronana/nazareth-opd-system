@@ -36,10 +36,26 @@ readinessCheck(
     'session diagnostic uses a random probe and constant-time verification'
 );
 readinessCheck(
-    strpos($readinessEndpoint, "'gemini'") !== false
-        && strpos($readinessEndpoint, "'model' => $model") !== false
+    strpos($readinessEndpoint, "['REQUEST_METHOD']") !== false
+        && strpos($readinessEndpoint, "'POST'") !== false
+        && strpos($readinessEndpoint, "'GET'") !== false,
+    'readiness endpoint distinguishes safe GET checks from explicit POST actions'
+);
+readinessCheck(
+    strpos($readinessEndpoint, 'system_readiness_csrf') !== false
+        && strpos($readinessEndpoint, 'hash_equals($csrf') !== false,
+    'Gemini diagnostic requires a session-bound CSRF token'
+);
+readinessCheck(
+    strpos($readinessEndpoint, 'system_readiness_gemini_last_test') !== false
+        && strpos($readinessEndpoint, 'time() - 30') !== false,
+    'Gemini diagnostic is rate-limited to one request per 30 seconds per session'
+);
+readinessCheck(
+    strpos($readinessEndpoint, "'status' => 'not_tested'") !== false
+        && strpos($readinessEndpoint, 'x-goog-api-key: ') !== false
         && strpos($readinessEndpoint, "'gemini_api_key'") === false,
-    'Gemini diagnostics report connection metadata without returning the API key'
+    'GET does not call Gemini and POST keeps the API key out of diagnostic output'
 );
 
 echo "All deployment-readiness safeguard checks passed.\n";
