@@ -70,6 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Nazareth Hospital &mdash; Sign In</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/style.css">
     <style>
         html, body { height: 100%; }
         body { display: flex; }
@@ -77,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .auth-hero {
             flex: 1.15; position: relative; color: #fff; padding: 3rem 3rem 2rem;
             display: flex; flex-direction: column; justify-content: space-between;
-            background: radial-gradient(circle at 15% 20%, #2b6cb0 0%, #14213d 55%, #0b1224 100%);
+            background: radial-gradient(circle at 15% 20%, #22b8bd 0%, #176f9e 46%, #123b63 100%);
             overflow: hidden;
         }
 
@@ -87,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .auth-hero::before { width: 340px; height: 340px; top: -80px; right: -100px; }
         .auth-hero::after { width: 220px; height: 220px; bottom: -60px; left: -60px; }
         .auth-hero .brand { position: relative; z-index: 1; }
-        .auth-hero .brand strong { color: #63b3ed; }
+        .auth-hero .brand strong { color: #8ce8df; }
         .auth-hero .headline { position: relative; z-index: 1; max-width: 480px; }
         .auth-hero .feature-row { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 1.5rem; }
         .auth-hero .feature-item { text-align: center; width: 110px; }
@@ -95,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             width: 52px; height: 52px; border-radius: 50%; background: rgba(255,255,255,0.12);
             display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem; font-size: 1.1rem;
         }
-        .auth-panel { flex: 1; display: flex; align-items: center; justify-content: center; background: #f4f6f9; padding: 2rem; }
+        .auth-panel { flex: 1; display: flex; align-items: center; justify-content: center; background: #f7fbfd; padding: 2rem; }
         .auth-card { width: 100%; max-width: 400px; }
 
         /* Below 900px: stack the welcome panel above the sign-in card instead of hiding it. */
