@@ -134,7 +134,7 @@ jobs:
 
   infinityfree-explicit-ftps-connectivity:
     name: InfinityFree Explicit FTPS connectivity (manual only)
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/feature/intelligent-opd-platform'
     runs-on: ubuntu-latest
     timeout-minutes: 2
     env:
