@@ -85,6 +85,17 @@ $upcomingAppointments = fetchAppointmentsByStatuses($pdo, $patient_id, ['Pending
 $completedAppointments = fetchAppointmentsByStatuses($pdo, $patient_id, ['Completed']);
 $cancelledAppointments = fetchAppointmentsByStatuses($pdo, $patient_id, ['Cancelled', 'Rejected']);
 
+$patientTrendStmt = $pdo->prepare("SELECT DATE_FORMAT(appointment_date, '%Y-%m') AS month_key, COUNT(*) AS total FROM appointments WHERE patient_id = ? AND appointment_date >= DATE_SUB(CURDATE(), INTERVAL 5 MONTH) GROUP BY DATE_FORMAT(appointment_date, '%Y-%m') ORDER BY month_key");
+$patientTrendStmt->execute([$patient_id]);
+$patientTrendRows = $patientTrendStmt->fetchAll(PDO::FETCH_KEY_PAIR);
+$patientTrendLabels = []; $patientTrendValues = [];
+for ($i = 5; $i >= 0; $i--) { $month = date('Y-m', strtotime(date('Y-m-01') . " -$i months")); $patientTrendLabels[] = date('M Y', strtotime($month . '-01')); $patientTrendValues[] = (int)($patientTrendRows[$month] ?? 0); }
+$patientStatusStmt = $pdo->prepare("SELECT status, COUNT(*) AS total FROM appointments WHERE patient_id = ? GROUP BY status");
+$patientStatusStmt->execute([$patient_id]);
+$patientStatusLabels = []; $patientStatusValues = [];
+foreach ($patientStatusStmt->fetchAll() as $row) { $patientStatusLabels[] = (string)$row['status']; $patientStatusValues[] = (int)$row['total']; }
+
+
 $activePage = 'dashboard';
 require_once __DIR__ . '/../includes/patient_layout_header.php';
 ?>
@@ -96,6 +107,17 @@ require_once __DIR__ . '/../includes/patient_layout_header.php';
     </div>
     <div class="text-secondary fw-semibold"><?php echo date('l, j F Y'); ?></div>
 </div>
+
+    <div class="row g-4 mb-4 opd-analytics">
+        <div class="col-lg-8"><section class="card border-0 p-4 h-100">
+            <div class="d-flex justify-content-between align-items-start mb-3"><div><span class="opd-chart-kicker">YOUR HEALTH JOURNEY</span><h5 class="fw-bold mb-1">Appointment History</h5><p class="text-muted small mb-0">Your monthly visits over the last six months</p></div><span class="opd-chart-icon"><i class="fa-solid fa-chart-line"></i></span></div>
+            <div class="opd-chart-wrap"><canvas id="yourhealthjourneyTrend" role="img" aria-label="Appointment History"></canvas></div>
+        </section></div>
+        <div class="col-lg-4"><section class="card border-0 p-4 h-100">
+            <div class="d-flex justify-content-between align-items-start mb-3"><div><span class="opd-chart-kicker">STATUS MIX</span><h5 class="fw-bold mb-1">Visit Status</h5><p class="text-muted small mb-0">Your appointment breakdown</p></div><span class="opd-chart-icon teal"><i class="fa-solid fa-chart-pie"></i></span></div>
+            <div class="opd-chart-wrap opd-chart-doughnut"><canvas id="yourhealthjourneyStatus" role="img" aria-label="Visit Status"></canvas></div>
+        </section></div>
+    </div>
 
 <!-- Stat Cards -->
 <div class="row g-3 mb-4">
@@ -269,6 +291,15 @@ require_once __DIR__ . '/../includes/patient_layout_header.php';
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script>(function(){if(!window.Chart)return;
+const labels=<?php echo json_encode($patientTrendLabels, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>;
+const values=<?php echo json_encode($patientTrendValues); ?>;
+const sl=<?php echo json_encode($patientStatusLabels, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>;
+const sv=<?php echo json_encode($patientStatusValues); ?>;
+const c=document.getElementById('yourhealthjourneyTrend');if(c)new Chart(c,{type:'line',data:{labels,datasets:[{label:'Appointments',data:values,borderColor:'#1685c5',backgroundColor:'rgba(22,133,197,.14)',fill:true,tension:.38,borderWidth:3,pointRadius:4,pointBackgroundColor:'#20aaa9'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0},grid:{color:'rgba(35,66,82,.08)'}},x:{grid:{display:false}}}}});
+const d=document.getElementById('yourhealthjourneyStatus');if(d)new Chart(d,{type:'doughnut',data:{labels:sl,datasets:[{data:sv,backgroundColor:['#20aaa9','#1685c5','#f0a45d','#8b78d6','#e76f79','#70b88a','#91a4b7'],borderColor:'#fff',borderWidth:3,hoverOffset:5}]},options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,padding:14}}}}});
+})();</script>
 <script src="/assets/js/dashboard-live.js" defer></script>
 
 <?php require_once __DIR__ . '/../includes/patient_layout_footer.php'; ?>
