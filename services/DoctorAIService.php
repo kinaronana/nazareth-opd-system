@@ -18,7 +18,17 @@ function generateDoctorAIDraft(string $type, string $source): string
     }
     $model = trim((string)(getenv('GEMINI_MODEL') ?: 'gemini-3.5-flash-lite'));
     if (!preg_match('/^[A-Za-z0-9._-]{1,100}$/', $model)) return localDoctorDraft($type, $source);
-    $endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/' . rawurlencode($model) . ':generateContent';
+    // CI can point this service at its isolated local Gemini mock. Production
+    // continues to use Google's HTTPS Gemini API unless an endpoint is explicitly set.
+    $endpoint = trim((string)(getenv('OPD_GEMINI_API_URL') ?: ''));
+    if ($endpoint === '') {
+        $endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/' . rawurlencode($model) . ':generateContent';
+    }
+    if (!filter_var($endpoint, FILTER_VALIDATE_URL)) return localDoctorDraft($type, $source);
+    $scheme = (string)parse_url($endpoint, PHP_URL_SCHEME);
+    $host = (string)parse_url($endpoint, PHP_URL_HOST);
+    $isLocalTest = $scheme === 'http' && in_array($host, ['127.0.0.1', 'localhost'], true);
+    if ($scheme !== 'https' && !$isLocalTest) return localDoctorDraft($type, $source);
     $instruction = "You are a documentation assistant for a fictional school-project OPD. Organise only the clinician-provided text into a clear {$type}. Do not infer missing facts, diagnose, recommend tests, prescribe or suggest treatment. Preserve uncertainty and label missing information as not provided. Return concise plain text. This is a draft that must be reviewed and edited by the doctor before approval.";
     $payload = [
         'systemInstruction' => ['parts' => [['text' => $instruction]]],

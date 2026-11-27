@@ -219,6 +219,7 @@ $doctorAiGenerate = httpRequest('/api/doctor_ai_assistant.php', ['action'=>'gene
 $doctorAiDraft = decoded($doctorAiGenerate);
 $doctorAiDraftId = (int)($doctorAiDraft['draft_id'] ?? 0);
 assertApi($doctorAiGenerate['status'] === 201 && $doctorAiDraftId > 0 && ($doctorAiDraft['status'] ?? '') === 'Draft', 'Assigned doctor can generate an unapproved documentation draft');
+assertApi(strpos((string)($doctorAiDraft['draft_text'] ?? ''), 'CI MOCK DOCTOR DRAFT:') === 0, 'Doctor AI draft generation uses the isolated local Gemini mock rather than an external provider or local fallback');
 $wrongDoctorRead = httpRequest('/api/doctor_ai_assistant.php?appointment_id=1', null, $doctorTwo);
 $wrongDoctorCsrf = decoded(httpRequest('/api/doctor_ai_assistant.php?appointment_id='.$secondAppointmentId, null, $doctorTwo))['csrf'] ?? '';
 assertApi($wrongDoctorRead['status'] === 404, 'Different doctor cannot read another doctor appointment context');

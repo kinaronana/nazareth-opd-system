@@ -28,17 +28,21 @@ if ($path === '/__test/gemini') {
     $payload = json_decode(file_get_contents('php://input'), true);
     $contents = is_array($payload) ? ($payload['contents'] ?? []) : [];
     $system = (string)($payload['systemInstruction']['parts'][0]['text'] ?? '');
-    if (!is_array($contents) || !$contents || strpos($system, 'Never diagnose') === false) {
+    $isPatientAssistantPrompt = strpos($system, 'Never diagnose') !== false;
+    $isDoctorDocumentationPrompt = strpos($system, 'documentation assistant for a fictional school-project OPD') !== false
+        && strpos($system, 'Do not infer missing facts, diagnose') !== false;
+    if (!is_array($contents) || !$contents || (!$isPatientAssistantPrompt && !$isDoctorDocumentationPrompt)) {
         http_response_code(400); echo json_encode(['error' => ['message' => 'Invalid mock request payload']]); exit;
     }
     $allText = '';
     foreach ($contents as $turn) $allText .= ' ' . (string)($turn['parts'][0]['text'] ?? '');
     $lastText = strtolower((string)($contents[count($contents) - 1]['parts'][0]['text'] ?? ''));
-    if (strpos($lastText, 'mock blocked response') !== false) {
+    if ($isDoctorDocumentationPrompt) {
+        $reply = "CI MOCK DOCTOR DRAFT: Consultation note organised from clinician-provided fictional information only. No diagnosis or treatment advice added.";
+    } elseif (strpos($lastText, 'mock blocked response') !== false) {
         echo json_encode(['candidates' => [['finishReason' => 'SAFETY', 'content' => ['parts' => []]]]]);
         exit;
-    }
-    if (strpos($lastText, 'mock unsafe response') !== false) {
+    } elseif (strpos($lastText, 'mock unsafe response') !== false) {
         $reply = 'You likely have pneumonia. Take 2 tablets of ibuprofen now.';
     } else {
         $reply = count($contents) >= 3 && stripos($allText, 'How do I book an appointment?') !== false
