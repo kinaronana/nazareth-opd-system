@@ -14,17 +14,21 @@
 - Execute SQL only after a separate explicit production-SQL approval and a fresh backup.
 
 ## Host checks
-- Confirm PHP >= 8.2 and pdo_mysql, curl, openssl, session and json extensions.
-- Verify HTTPS, cookie flags, session storage writability, file permissions and .htaccess behavior.
-- Visit /admin/system_readiness.php while signed in as Admin. It performs a minimal Gemini GenerateContent request using the server-side key and returns only connection status/model, never the key or raw response.
-- Confirm outbound HTTPS to Google and run role-based smoke tests. This endpoint is a diagnostic, not a substitute for hosted end-to-end testing.
+- Verify the PHP version actually selected in the InfinityFree control panel; do not infer the account's runtime version from platform announcements. The application CI has been exercised on PHP 8.2 and 8.4.
+- Confirm pdo_mysql, curl, openssl, session and json extensions using the hosted readiness page.
+- Verify HTTPS, cookie flags, session storage persistence, database connectivity and relevant file permissions.
+- Test the deployed .htaccess on the account: confirm normal routes work and direct requests to /config, /tests, production.php, .env files, SQL, log and INI files are denied. Confirm there is no HTTP 500 caused by unsupported directives. The mod_headers cache-control block is conditional, but still requires live verification.
+- Open /admin/system_readiness.php while signed in as Admin. A GET request runs local checks only and returns a session-bound CSRF token; it does not contact Gemini.
+- To test Gemini deliberately, send an authenticated POST to the same endpoint with the returned CSRF token. The endpoint enforces a 30-second per-session rate limit, uses the server-side GEMINI_API_KEY in the request header, and returns only connection status/model. Never place the key in browser code, URLs, chat, screenshots or logs.
+- Confirm outbound HTTPS to generativelanguage.googleapis.com from the hosted PHP runtime. General outbound HTTPS support does not prove this specific API is reachable.
+- Run role-based smoke tests only in a controlled, approved environment. This diagnostic is not a substitute for hosted end-to-end testing.
 
 ## Deployment and rollback
-- Deploy only approved changed files; inspect FTP action logs to verify delta transfer and preserve remote files.
+- Deploy only approved changed files; inspect FTPS action logs to verify delta transfer and preserve remote files.
 - Smoke-test login/logout, queue, patient assistant, doctor draft review, admin centre and database writes.
 - If application files fail, restore the pre-deployment files via FTP.
 - If a schema change fails, stop writes and restore the full database backup through phpMyAdmin; DDL cannot be rolled back with a transaction.
 - Verify restored application/database behavior before reopening access and record the restored commit.
 
 ## Current limitations
-No staging website exists. Account-specific PHP configuration, extensions, sessions, permissions, .htaccess, actual Gemini connectivity and rollback remain unverified until tested on the InfinityFree account. This runbook performs no backup, SQL execution or deployment.
+No staging website exists. Account-specific PHP version, extensions, database connectivity, sessions, permissions, .htaccess behavior, FTPS connection, actual Gemini connectivity and rollback remain unverified until tested on the InfinityFree account. The CI test matrix is not evidence of the hosting account's runtime configuration. This runbook performs no backup, SQL execution or deployment.
