@@ -68,26 +68,26 @@ $navItems = [
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/style.css">
     <style>
-        body { background: #f4f6f9; }
+        body { background: #f7fbfd url("/assets/images/medical-pattern.svg") repeat; background-size: 480px 340px; }
         .patient-shell { display: flex; min-height: 100vh; }
         .patient-sidebar {
-            width: 250px; flex-shrink: 0; background: #14213d; color: #cfd6e4;
+            width: 250px; flex-shrink: 0; background: linear-gradient(180deg, #12628f 0%, #164d70 100%); color: #e2f5fb;
             display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto;
             z-index: 1045;
         }
         .patient-sidebar .brand { padding: 1.25rem 1.25rem 1rem; color: #fff; }
-        .patient-sidebar .brand strong { color: #4dabf7; }
+        .patient-sidebar .brand strong { color: #74e0d4; }
         .patient-sidebar .nav-link {
-            color: #cfd6e4; padding: 0.65rem 1.25rem; border-radius: 0; display: flex; align-items: center; gap: 0.6rem;
+            color: #e2f5fb; padding: 0.65rem 1.25rem; border-radius: 0; display: flex; align-items: center; gap: 0.6rem;
             font-size: 0.92rem; font-weight: 500;
         }
         .patient-sidebar .nav-link i { width: 18px; text-align: center; }
-        .patient-sidebar .nav-link:hover { background: #1c2b4d; color: #fff; }
-        .patient-sidebar .nav-link.active { background: #1c7ed6; color: #fff; }
+        .patient-sidebar .nav-link:hover { background: rgba(255,255,255,.12); color: #fff; }
+        .patient-sidebar .nav-link.active { background: linear-gradient(100deg, #20aaa9, #1685c5); color: #fff; }
         .patient-sidebar .quote { margin-top: auto; padding: 1.25rem; font-style: italic; color: #7c8aa8; font-size: 0.85rem; text-align: center; }
         .patient-main { flex-grow: 1; min-width: 0; }
         .patient-topbar {
-            background: #fff; border-bottom: 1px solid #e9ecef; padding: 0.75rem 1.5rem;
+            background: rgba(255,255,255,.94); border-bottom: 1px solid #d9eaf0; backdrop-filter: blur(10px); padding: 0.75rem 1.5rem;
             display: flex; align-items: center; justify-content: space-between; gap: 1rem;
         }
         .patient-topbar .search-box { max-width: 420px; width: 100%; }
