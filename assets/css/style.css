@@ -54,7 +54,7 @@ body {
 /* Nazareth OPD visual refresh: coordinated blue, teal and soft medical pattern. */
 :root{--opd-blue:#1685c5;--opd-blue-deep:#12628f;--opd-teal:#20aaa9;--opd-sky:#e8f7fc;--opd-mint:#e7f7f3;--opd-lavender:#f0edff;--opd-coral:#fff0eb;--opd-amber:#fff7e4;--opd-ink:#234252;--opd-line:#d9eaf0}
 html{background:#f7fbfd}
-body,body.bg-light{color:var(--opd-ink);background-color:#f7fbfd!important;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='340' viewBox='0 0 480 340'%3E%3Cg fill='none' stroke='%239bdcf0' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' opacity='.48'%3E%3Cpath d='M70 0v28h28v38h-28v28H32V66H4V28h28V0'/%3E%3Cpath d='M220 10c-18 0-28 12-28 29v42c0 18 12 29 28 29s28-11 28-29V39c0-17-10-29-28-29zM220 110v34m0-14h-24m24 0c18 0 25 8 25 19 0 8-6 14-14 14s-14-6-14-14'/%3E%3Cpath d='M350 0v28h28v38h-28v28h-38V66h-28V28h28V0'/%3E%3C/g%3E%3C/svg%3E");background-repeat:repeat;background-size:480px 340px;background-attachment:fixed}
+body,body.bg-light{color:var(--opd-ink);background-color:#f7fbfd!important;background-image:url("/assets/images/medical-pattern.svg");background-repeat:repeat;background-size:480px 340px;background-attachment:fixed}
 .card,.modal-content,.dropdown-menu{border:1px solid rgba(205,229,237,.85);border-radius:16px!important;box-shadow:0 8px 24px rgba(27,91,119,.08)}
 .card-header{border-bottom-color:var(--opd-line)}
 .btn-primary,.bg-primary{background:linear-gradient(115deg,var(--opd-blue-deep),var(--opd-teal))!important;border-color:var(--opd-blue)!important}
@@ -73,3 +73,29 @@ body,body.bg-light{color:var(--opd-ink);background-color:#f7fbfd!important;backg
 .auth-hero .feature-item .icon-circle{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.16)}
 
 .auth-panel{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='340'%3E%3Cg fill='none' stroke='%239bdcf0' stroke-width='3' opacity='.42'%3E%3Cpath d='M70 0v28h28v38h-28v28H32V66H4V28h28V0'/%3E%3Cpath d='M220 10c-18 0-28 12-28 29v42c0 18 12 29 28 29s28-11 28-29V39c0-17-10-29-28-29zM220 110v34m0-14h-24'/%3E%3C/g%3E%3C/svg%3E")!important;background-repeat:repeat!important}
+
+/* Dashboard-inspired card treatment */
+.container.my-5 .row.g-3.mb-5 > [class*="col-"] > .card,
+.patient-main .row.g-3.mb-4 > [class*="col-"] > .card {
+  border-radius:17px!important;
+  box-shadow:0 9px 26px rgba(22,93,123,.09)!important;
+  transition:transform .18s ease,box-shadow .18s ease;
+}
+.container.my-5 .row.g-3.mb-5 > [class*="col-"] > .card:hover,
+.patient-main .row.g-3.mb-4 > [class*="col-"] > .card:hover {
+  transform:translateY(-2px);
+  box-shadow:0 13px 30px rgba(22,93,123,.13)!important;
+}
+.container.my-5 .row.g-3.mb-5 > [class*="col-"]:nth-child(1) > .card {border-left-color:#1685c5!important}
+.container.my-5 .row.g-3.mb-5 > [class*="col-"]:nth-child(2) > .card {border-left-color:#20aaa9!important}
+.container.my-5 .row.g-3.mb-5 > [class*="col-"]:nth-child(3) > .card {border-left-color:#8b78d6!important}
+.container.my-5 .row.g-3.mb-5 > [class*="col-"]:nth-child(4) > .card {border-left-color:#f0a45d!important}
+.container.my-5 .card h5,.container.my-5 .card h6 {letter-spacing:.01em}
+.container.my-5 .table-responsive {border-radius:12px}
+.table-hover tbody tr:hover {background-color:#f0f9fc}
+.nav-tabs .nav-link {color:#527384;border-radius:10px 10px 0 0}
+.nav-tabs .nav-link.active {color:#12628f;border-color:#cfe8ef #cfe8ef #fff;font-weight:700}
+.ai-chat-messages {background:#f4fbfd;border-color:#d9eaf0}
+.ai-chat-bubble.assistant {border-color:#d9eaf0;border-radius:16px}
+.ai-chat-bubble.patient {background:linear-gradient(120deg,#e1f2ff,#e3f7f3);color:#174b68}
+@media(prefers-reduced-motion:reduce){.container.my-5 .row.g-3.mb-5 > [class*="col-"] > .card,.patient-main .row.g-3.mb-4 > [class*="col-"] > .card{transition:none}}

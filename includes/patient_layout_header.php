@@ -68,7 +68,7 @@ $navItems = [
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/style.css">
     <style>
-        body { background: #f4f6f9; }
+        body { background: #f7fbfd url("/assets/images/medical-pattern.svg") repeat; background-size: 480px 340px; }
         .patient-shell { display: flex; min-height: 100vh; }
         .patient-sidebar {
             width: 250px; flex-shrink: 0; background: linear-gradient(180deg, #12628f 0%, #164d70 100%); color: #e2f5fb;
