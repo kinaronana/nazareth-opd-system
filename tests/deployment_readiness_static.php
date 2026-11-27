@@ -53,9 +53,20 @@ readinessCheck(
 );
 readinessCheck(
     strpos($readinessEndpoint, "'status' => 'not_tested'") !== false
-        && strpos($readinessEndpoint, 'x-goog-api-key: ') !== false
-        && strpos($readinessEndpoint, "'gemini_api_key'") === false,
-    'GET does not call Gemini and POST keeps the API key out of diagnostic output'
+        && strpos($readinessEndpoint, 'x-goog-api-key: ') !== false,
+    'GET does not call Gemini and POST sends credentials only in the server-side request header'
+);
+readinessCheck(
+    strpos($readinessEndpoint, "'key_in_production_config' => $productionGeminiKeyPresent") !== false
+        && strpos($readinessEndpoint, "'key_in_environment' => $environmentGeminiKeyPresent") !== false
+        && strpos($readinessEndpoint, "'model_valid' => $geminiModelValid") !== false,
+    'Gemini readiness reports only boolean configuration diagnostics'
+);
+readinessCheck(
+    strpos($readinessEndpoint, "trim($productionGeminiKey) !== ''") !== false
+        && strpos($readinessEndpoint, "trim($environmentGeminiKey) !== ''") !== false
+        && strpos($readinessEndpoint, "preg_match('/^[A-Za-z0-9._-]{1,100}$/', $configuredGeminiModel)") !== false,
+    'Gemini key presence and model validity are checked without returning secret values'
 );
 readinessCheck(
     strpos($readinessEndpoint, '$localFailed = array_filter($checks') !== false
