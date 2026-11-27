@@ -37,7 +37,7 @@ jobs:
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="if [ \"${{matrix.database_name}\" = \"MariaDB 11.4\" ]; then healthcheck.sh --connect --innodb_initialized; else mysqladmin ping -h 127.0.0.1 -u root -ptest-root-password; fi"
+          --health-cmd="if [ \"${{ matrix.database_name }}\" = \"MariaDB 11.4\" ]; then healthcheck.sh --connect --innodb_initialized; else mysqladmin ping -h 127.0.0.1 -u root -ptest-root-password; fi"
           --health-interval=5s
           --health-timeout=5s
           --health-retries=30
