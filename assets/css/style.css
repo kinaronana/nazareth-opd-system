@@ -99,3 +99,59 @@ body,body.bg-light{color:var(--opd-ink);background-color:#f7fbfd!important;backg
 .ai-chat-bubble.assistant {border-color:#d9eaf0;border-radius:16px}
 .ai-chat-bubble.patient {background:linear-gradient(120deg,#e1f2ff,#e3f7f3);color:#174b68}
 @media(prefers-reduced-motion:reduce){.container.my-5 .row.g-3.mb-5 > [class*="col-"] > .card,.patient-main .row.g-3.mb-4 > [class*="col-"] > .card{transition:none}}
+
+/* Consistent dashboard surfaces across Admin, Doctor and Patient portals. */
+.container.my-5 > .row.g-3 > [class*="col-"] > .card,
+.container.my-5 > .row.g-4 > [class*="col-"] > .card {
+  border:1px solid rgba(205,229,237,.88)!important;
+  border-radius:17px!important;
+  box-shadow:0 9px 26px rgba(22,93,123,.085)!important;
+}
+.container.my-5 > .row.g-3 > [class*="col-"] > .card,
+.container.my-5 > .row.g-4 > [class*="col-"] > .card {
+  transition:box-shadow .18s ease,border-color .18s ease;
+}
+.container.my-5 > .row.g-3 > [class*="col-"] > .card:hover,
+.container.my-5 > .row.g-4 > [class*="col-"] > .card:hover {
+  border-color:#b8dfe8!important;
+  box-shadow:0 13px 30px rgba(22,93,123,.12)!important;
+}
+.container.my-5 > .row > [class*="col-"] > .card .card-header {
+  background:rgba(237,247,250,.88);
+  color:#24566c;
+}
+.container.my-5 .border-start.border-4 {
+  border-left-width:4px!important;
+}
+.container.my-5 .table {
+  --bs-table-bg:transparent;
+}
+.container.my-5 .table thead th {
+  white-space:nowrap;
+  font-size:.82rem;
+  letter-spacing:.025em;
+}
+.auth-panel {
+  background-color:rgba(247,251,253,.96)!important;
+  background-size:480px 340px!important;
+}
+.auth-card {
+  padding:clamp(1.25rem,3vw,2rem);
+  border:1px solid rgba(205,229,237,.9);
+  border-radius:20px;
+  background:#fff;
+  box-shadow:0 16px 42px rgba(27,91,119,.12);
+}
+@media(max-width:767.98px) {
+  .container.my-5 {margin-top:1.25rem!important;margin-bottom:1.5rem!important}
+  .container.my-5 > .row.g-3,
+  .container.my-5 > .row.g-4 {--bs-gutter-y:1rem}
+  .container.my-5 .card-body {min-width:0}
+  .container.my-5 .table-responsive {max-width:100%;overflow-x:auto}
+  .auth-card {box-shadow:0 8px 24px rgba(27,91,119,.09)}
+}
+@media(prefers-reduced-motion:reduce) {
+  .container.my-5 > .row.g-3 > [class*="col-"] > .card,
+  .container.my-5 > .row.g-4 > [class*="col-"] > .card {transition:none}
+}
+
