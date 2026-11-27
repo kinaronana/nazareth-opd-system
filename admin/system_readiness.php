@@ -70,8 +70,36 @@ if (session_status() === PHP_SESSION_ACTIVE) {
     }
 }
 $checks['session_storage'] = ['ok' => $sessionStorageOk];
-$productionConfig = dirname(__DIR__) . '/config/production.php';
-$checks['production_config'] = ['ok' => is_readable($productionConfig)];
+$productionConfigPath = dirname(__DIR__) . '/config/production.php';
+$productionConfigReadable = is_readable($productionConfigPath);
+$checks['production_config'] = ['ok' => $productionConfigReadable];
+
+// Inspect Gemini configuration without ever returning credential material.
+// Use a distinct variable because config/database.php has already loaded its
+// own production configuration before this endpoint executes.
+$readinessProductionConfig = [];
+if ($productionConfigReadable) {
+    try {
+        $loadedProductionConfig = require $productionConfigPath;
+        if (is_array($loadedProductionConfig)) {
+            $readinessProductionConfig = $loadedProductionConfig;
+        }
+    } catch (Throwable $e) {
+        $readinessProductionConfig = [];
+    }
+}
+$productionGeminiKey = $readinessProductionConfig['gemini_api_key'] ?? '';
+$environmentGeminiKey = getenv('GEMINI_API_KEY');
+$productionGeminiKeyPresent = is_string($productionGeminiKey) && trim($productionGeminiKey) !== '';
+$environmentGeminiKeyPresent = is_string($environmentGeminiKey) && trim($environmentGeminiKey) !== '';
+$configuredGeminiModel = trim((string) (getenv('GEMINI_MODEL') ?: ($readinessProductionConfig['gemini_model'] ?? 'gemini-3.5-flash-lite')));
+$geminiModelValid = (bool) preg_match('/^[A-Za-z0-9._-]{1,100}$/', $configuredGeminiModel);
+$checks['gemini_configuration'] = [
+    'ok' => ($productionGeminiKeyPresent || $environmentGeminiKeyPresent) && $geminiModelValid,
+    'key_in_production_config' => $productionGeminiKeyPresent,
+    'key_in_environment' => $environmentGeminiKeyPresent,
+    'model_valid' => $geminiModelValid,
+];
 try {
     $pdo->query('SELECT 1');
     $checks['database'] = ['ok' => true];
