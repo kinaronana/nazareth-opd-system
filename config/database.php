@@ -19,7 +19,6 @@ function loadEnvironmentFile(string $path): void
         [$key, $value] = explode('=', $line, 2);
         $key = trim($key);
         $value = trim($value, " \t\n\r\0\x0B\"'");
-
         if ($key !== '' && getenv($key) === false) {
             putenv($key . '=' . $value);
         }
@@ -28,6 +27,12 @@ function loadEnvironmentFile(string $path): void
 
 loadEnvironmentFile(dirname(__DIR__) . '/.env');
 
+$productionConfigPath = __DIR__ . '/production.php';
+$productionConfig = is_readable($productionConfigPath) ? require $productionConfigPath : [];
+if (!is_array($productionConfig)) {
+    $productionConfig = [];
+}
+
 $settings = [
     'host' => getenv('OPD_DB_HOST') ?: '',
     'name' => getenv('OPD_DB_NAME') ?: '',
@@ -35,20 +40,21 @@ $settings = [
     'password' => getenv('OPD_DB_PASSWORD') ?: '',
 ];
 
-// Preserve the existing server-side configuration as a fallback until the
-// deployment workflow provides all four database secrets.
 if (in_array('', $settings, true)) {
-    $productionConfigPath = __DIR__ . '/production.php';
-    $productionConfig = is_readable($productionConfigPath) ? require $productionConfigPath : [];
+    $settings = [
+        'host' => $productionConfig['host'] ?? '',
+        'name' => $productionConfig['name'] ?? '',
+        'user' => $productionConfig['user'] ?? '',
+        'password' => $productionConfig['password'] ?? '',
+    ];
+}
 
-    if (is_array($productionConfig)) {
-        $settings = [
-            'host' => $productionConfig['host'] ?? '',
-            'name' => $productionConfig['name'] ?? '',
-            'user' => $productionConfig['user'] ?? '',
-            'password' => $productionConfig['password'] ?? '',
-        ];
-    }
+// Production secrets are read server-side only; never expose them to browser code.
+if (getenv('GEMINI_API_KEY') === false && !empty($productionConfig['gemini_api_key'])) {
+    putenv('GEMINI_API_KEY=' . $productionConfig['gemini_api_key']);
+}
+if (getenv('GEMINI_MODEL') === false && !empty($productionConfig['gemini_model'])) {
+    putenv('GEMINI_MODEL=' . $productionConfig['gemini_model']);
 }
 
 if (in_array('', $settings, true)) {

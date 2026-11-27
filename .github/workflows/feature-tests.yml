@@ -13,12 +13,22 @@ permissions:
   contents: read
 
 jobs:
-  php-and-mysql-tests:
-    name: PHP syntax and isolated MySQL integration
+  php-and-database-tests:
+    name: PHP ${{ matrix.php-version }} / ${{ matrix.database-name }} integration
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ['8.2', '8.4']
+        database-image: ['mysql:8.0', 'mariadb:11.4']
+        include:
+          - database-image: mysql:8.0
+            database-name: MySQL 8.0
+          - database-image: mariadb:11.4
+            database-name: MariaDB 11.4
     services:
-      mysql:
-        image: mysql:8.0
+      database:
+        image: ${{ matrix.database-image }}
         env:
           MYSQL_ROOT_PASSWORD: test-root-password
           MYSQL_DATABASE: nazareth_opd_test
@@ -30,19 +40,16 @@ jobs:
           --health-cmd="mysqladmin ping -h 127.0.0.1 -u root -ptest-root-password"
           --health-interval=5s
           --health-timeout=5s
-          --health-retries=20
+          --health-retries=30
     env:
       OPD_TEST_DB_HOST: 127.0.0.1
       OPD_TEST_DB_NAME: nazareth_opd_test
       OPD_TEST_DB_USER: opd_test
       OPD_TEST_DB_PASSWORD: opd_test_password
-      # The real application config consumes OPD_DB_*; point it at the same
-      # disposable CI database so API tests can never fall back to production.
       OPD_DB_HOST: 127.0.0.1
       OPD_DB_NAME: nazareth_opd_test
       OPD_DB_USERNAME: opd_test
       OPD_DB_PASSWORD: opd_test_password
-      # Local mock endpoint exercises the provider adapter without external calls.
       GEMINI_API_KEY: ci-mock-gemini-key
       GEMINI_MODEL: gemini-3.5-flash-lite
       OPD_GEMINI_API_URL: http://127.0.0.1:8081/__test/gemini
@@ -53,9 +60,12 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: ${{ matrix.php-version }}
           extensions: pdo_mysql, curl
           coverage: none
+
+      - name: Verify required PHP extensions
+        run: php -r 'foreach (["pdo_mysql", "curl", "session", "json"] as $ext) { if (!extension_loaded($ext)) { fwrite(STDERR, "Missing PHP extension: $ext\n"); exit(1); } }'
 
       - name: Lint all PHP files
         shell: bash
@@ -65,13 +75,11 @@ jobs:
             php -l "$file"
           done < <(find . -type f -name '*.php' -not -path './.git/*' -print0)
 
-      - name: Run isolated MySQL integration tests
+      - name: Run isolated database integration tests
         run: php tests/integration.php
 
       - name: Start isolated PHP application and Gemini mock servers
         run: |
-          # The built-in PHP server is single-threaded. Run the mock provider
-          # on a separate port so the API request can call it without deadlock.
           php -S 127.0.0.1:8080 -t . tests/http_router.php > /tmp/opd-php-server.log 2>&1 &
           echo $! > /tmp/opd-php-server.pid
           php -S 127.0.0.1:8081 -t . tests/http_router.php > /tmp/opd-gemini-mock.log 2>&1 &
@@ -89,9 +97,7 @@ jobs:
               http://127.0.0.1:8081/__test/session >/dev/null; then
               mock_ready=1
             fi
-            if [ "$app_ready" = 1 ] && [ "$mock_ready" = 1 ]; then
-              exit 0
-            fi
+            if [ "$app_ready" = 1 ] && [ "$mock_ready" = 1 ]; then exit 0; fi
             sleep 1
           done
           cat /tmp/opd-php-server.log
