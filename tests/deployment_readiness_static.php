@@ -73,8 +73,8 @@ $databaseConfig = file_get_contents($root . '/config/database.php');
 readinessCheck(
     strpos($databaseConfig, "trim((string) (getenv('GEMINI_API_KEY') ?: '')) === ''") !== false
         && strpos($databaseConfig, "trim((string) (getenv('GEMINI_MODEL') ?: '')) === ''") !== false
-        && strpos($databaseConfig, "putenv('GEMINI_API_KEY=' . $productionConfig['gemini_api_key'])") !== false
-        && strpos($databaseConfig, "putenv('GEMINI_MODEL=' . $productionConfig['gemini_model'])") !== false,
+        && strpos($databaseConfig, 'putenv(\'GEMINI_API_KEY=\' . $productionConfig[\'gemini_api_key\'])') !== false
+        && strpos($databaseConfig, 'putenv(\'GEMINI_MODEL=\' . $productionConfig[\'gemini_model\'])') !== false,
     'empty or unset Gemini environment variables fall back to populated production configuration'
 );
 readinessCheck(
