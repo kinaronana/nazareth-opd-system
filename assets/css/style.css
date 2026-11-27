@@ -50,3 +50,19 @@ body {
 .ai-chat-bubble.patient { background: #e7f1ff; color: #173b72; margin-left: auto; }
 .ai-chat-bubble.emergency { border: 2px solid #dc3545; background: #fff0f1; color: #842029; font-weight: 600; }
 @media (max-width: 575.98px) { .ai-chat-messages { min-height: 260px; max-height: 55vh; } .ai-chat-bubble { max-width: 96%; } }
+
+/* Nazareth OPD visual refresh: coordinated blue, teal and soft medical pattern. */
+:root{--opd-blue:#1685c5;--opd-blue-deep:#12628f;--opd-teal:#20aaa9;--opd-sky:#e8f7fc;--opd-mint:#e7f7f3;--opd-lavender:#f0edff;--opd-coral:#fff0eb;--opd-amber:#fff7e4;--opd-ink:#234252;--opd-line:#d9eaf0}
+html{background:#f7fbfd}
+body,body.bg-light{color:var(--opd-ink);background-color:#f7fbfd!important;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='340' viewBox='0 0 480 340'%3E%3Cg fill='none' stroke='%239bdcf0' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' opacity='.48'%3E%3Cpath d='M70 0v28h28v38h-28v28H32V66H4V28h28V0'/%3E%3Cpath d='M220 10c-18 0-28 12-28 29v42c0 18 12 29 28 29s28-11 28-29V39c0-17-10-29-28-29zM220 110v34m0-14h-24m24 0c18 0 25 8 25 19 0 8-6 14-14 14s-14-6-14-14'/%3E%3Cpath d='M350 0v28h28v38h-28v28h-38V66h-28V28h28V0'/%3E%3C/g%3E%3C/svg%3E");background-repeat:repeat;background-size:480px 340px;background-attachment:fixed}
+.card,.modal-content,.dropdown-menu{border:1px solid rgba(205,229,237,.85);border-radius:16px!important;box-shadow:0 8px 24px rgba(27,91,119,.08)}
+.card-header{border-bottom-color:var(--opd-line)}
+.btn-primary,.bg-primary{background:linear-gradient(115deg,var(--opd-blue-deep),var(--opd-teal))!important;border-color:var(--opd-blue)!important}
+.text-primary{color:var(--opd-blue-deep)!important}
+.btn-outline-primary{color:var(--opd-blue-deep)!important;border-color:#78c6d7!important}
+.btn-outline-primary:hover{color:#fff!important;background:linear-gradient(115deg,var(--opd-blue-deep),var(--opd-teal))!important}
+.form-control,.form-select,.input-group-text{border-color:#d7e7ed;border-radius:10px}
+.form-control:focus,.form-select:focus{border-color:#55bdc5;box-shadow:0 0 0 .2rem rgba(32,170,169,.14)}
+.table thead th{color:#356477;background-color:#edf7fa}
+.alert{border-radius:12px}
+@media(max-width:767.98px){body,body.bg-light{background-attachment:scroll;background-size:360px 255px}.card,.modal-content{border-radius:13px!important}}
