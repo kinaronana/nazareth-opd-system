@@ -37,7 +37,7 @@ jobs:
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="if [ \\"${{ matrix.database_name }}\\" = \\"MariaDB 11.4\\" ]; then healthcheck.sh --connect --innodb_initialized; else mysqladmin ping -h 127.0.0.1 -u root -ptest-root-password; fi"
+          --health-cmd="if [ \"${{ matrix.database_name }}\" = \"MariaDB 11.4\" ]; then healthcheck.sh --connect --innodb_initialized; else mysqladmin ping -h 127.0.0.1 -u root -ptest-root-password; fi"
           --health-interval=5s
           --health-timeout=5s
           --health-retries=30
@@ -96,13 +96,13 @@ jobs:
           for attempt in $(seq 1 30); do
             app_ready=0
             mock_ready=0
-            if curl --silent --fail -X POST -H 'Content-Type: application/json' \\
-              -d '{"sid":"00000000000000000000000000000000","role":"Admin","user_id":1}' \\
+            if curl --silent --fail -X POST -H 'Content-Type: application/json' \
+              -d '{"sid":"00000000000000000000000000000000","role":"Admin","user_id":1}' \
               http://127.0.0.1:8080/__test/session >/dev/null; then
               app_ready=1
             fi
-            if curl --silent --fail -X POST -H 'Content-Type: application/json' \\
-              -d '{"sid":"11111111111111111111111111111111","role":"Admin","user_id":1}' \\
+            if curl --silent --fail -X POST -H 'Content-Type: application/json' \
+              -d '{"sid":"11111111111111111111111111111111","role":"Admin","user_id":1}' \
               http://127.0.0.1:8081/__test/session >/dev/null; then
               mock_ready=1
             fi
