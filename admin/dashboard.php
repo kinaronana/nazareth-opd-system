@@ -50,6 +50,10 @@ try {
     $deptCount    = 0;
     $todayCount   = 0;
     $recentAppointments = [];
+    $appointmentTrendLabels = [];
+    $appointmentTrendValues = [];
+    $appointmentStatusLabels = [];
+    $appointmentStatusValues = [];
 }
 
 require_once __DIR__ . '/../includes/header.php';
