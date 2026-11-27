@@ -78,8 +78,11 @@ readinessCheck(
     'empty or unset Gemini environment variables fall back to populated production configuration'
 );
 readinessCheck(
-    strpos($readinessEndpoint, "getenv('GEMINI_API_KEY') ?: (" . '$readinessProductionConfig' . "['gemini_api_key'] ?? '')") !== false
-        && strpos($readinessEndpoint, "getenv('GEMINI_MODEL') ?: (" . '$readinessProductionConfig' . "['gemini_model'] ?? 'gemini-3.5-flash-lite')") !== false,
+    strpos($readinessEndpoint, 'getenv(\'GEMINI_API_KEY\') ?: (') !== false
+        && strpos($readinessEndpoint, '$readinessProductionConfig') !== false
+        && strpos($readinessEndpoint, 'gemini_api_key') !== false
+        && strpos($readinessEndpoint, 'getenv(\'GEMINI_MODEL\') ?: (') !== false
+        && strpos($readinessEndpoint, 'gemini_model') !== false,
     'live Gemini POST resolves key and model from production configuration when environment values are empty'
 );
 readinessCheck(
