@@ -66,3 +66,8 @@ body,body.bg-light{color:var(--opd-ink);background-color:#f7fbfd!important;backg
 .table thead th{color:#356477;background-color:#edf7fa}
 .alert{border-radius:12px}
 @media(max-width:767.98px){body,body.bg-light{background-attachment:scroll;background-size:360px 255px}.card,.modal-content{border-radius:13px!important}}
+
+/* Shared navigation and authentication accents */
+.navbar.bg-dark{background:linear-gradient(105deg,#12628f,#20aaa9)!important}
+.auth-panel{background-color:#f7fbfd!important}
+.auth-hero .feature-item .icon-circle{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.16)}
