@@ -130,4 +130,22 @@ try {
 }
 check($rollbackWorked, 'transaction rollback preserves the last committed queue state');
 
+require_once __DIR__ . '/../services/AppointmentPredictionService.php';
+$today = date('Y-m-d');
+$history = [
+ ['appointment_date'=>date('Y-m-d',strtotime('-7 days')),'appointment_time'=>'09:15:00','status'=>'Completed','doctor_id'=>1,'doctor_name'=>'Dr Test Clinician'],
+ ['appointment_date'=>date('Y-m-d',strtotime('-7 days')),'appointment_time'=>'10:15:00','status'=>'Cancelled','doctor_id'=>1,'doctor_name'=>'Dr Test Clinician'],
+ ['appointment_date'=>date('Y-m-d',strtotime('-14 days')),'appointment_time'=>'09:45:00','status'=>'Completed','doctor_id'=>1,'doctor_name'=>'Dr Test Clinician'],
+ ['appointment_date'=>date('Y-m-d',strtotime('-21 days')),'appointment_time'=>'14:00:00','status'=>'Completed','doctor_id'=>1,'doctor_name'=>'Dr Test Clinician']
+];
+$forecast = buildAppointmentForecast($history,[['doctor_id'=>1,'name'=>'Dr Test Clinician']],$today,7);
+check(count($forecast['days'])===7, 'forecast returns seven daily estimates');
+check($forecast['summary']['expected_appointments']>0, 'forecast calculates demand from historical bookings');
+check($forecast['summary']['historical_cancellation_rate']>0, 'forecast includes cancelled bookings in cancellation rate');
+check(($forecast['busy_periods'][0]['time_slot']??'')==='08:00–09:59', 'forecast identifies busiest appointment time slot');
+check(count($forecast['doctor_workloads'])===1 && $forecast['doctor_workloads'][0]['expected_appointments']>0, 'forecast calculates doctor workload');
+check($forecast['data_quality']['confidence']==='Insufficient data', 'forecast warns when historical coverage is limited');
+$empty = buildAppointmentForecast([],[],$today,7);
+check($empty['summary']['expected_appointments']===0.0 && $empty['data_quality']['confidence']==='Insufficient data', 'forecast safely handles empty history');
+
 echo "All isolated MySQL integration checks passed.\n";

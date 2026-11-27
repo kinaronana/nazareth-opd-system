@@ -44,6 +44,7 @@ if (isset($_SESSION['user_id']) && isset($inboxRoutes[$role])) {
           <?php endif; ?>
           <?php if ($role === 'admin'): ?>
             <li class="nav-item"><a class="nav-link" href="/admin/queue.php">OPD Queue Centre</a></li>
+            <li class="nav-item"><a class="nav-link" href="/admin/predictions.php">AI Predictions</a></li>
             <li class="nav-item"><a class="nav-link" href="/admin/doctors/manage_doctors.php">Doctors</a></li>
             <li class="nav-item"><a class="nav-link" href="/admin/manage_appointments.php">Appointments</a></li>
           <?php endif; ?>

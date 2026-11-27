@@ -38,6 +38,10 @@ async function expectPage(context, path, heading) {
     const admin = await expectPage(adminCtx, '/admin/dashboard.php', 'Administrative Control Center');
     assert.equal(await admin.locator('[data-counter-key]').count(), 4, 'Admin dashboard renders four statistic counters');
     await expectPage(adminCtx, '/admin/queue.php', 'OPD Queue Control Centre');
+    const predictions = await expectPage(adminCtx, '/admin/predictions.php', 'AI Appointment & Queue Predictions');
+    await predictions.getByText('Expected appointments', { exact: true }).waitFor();
+    await predictions.locator('#forecastDays').selectOption('14');
+    await predictions.getByText(/Predictions updated/).waitFor();
     await adminCtx.close();
 
     const doctorCtx = await sessionContext(browser, 'Doctor', 2, { width: 1365, height: 900 });

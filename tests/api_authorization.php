@@ -70,6 +70,17 @@ $doctorTwo = newSession('Doctor', $secondDoctorUserId);
 $patient = newSession('Patient', 3);
 $patientTwo = newSession('Patient', 4);
 
+
+// Admin-only appointment predictions API.
+$r = httpRequest('/api/appointment_predictions.php', null, $admin);
+$predictionData = decoded($r);
+assertApi($r['status'] === 200 && isset($predictionData['summary']['expected_appointments'], $predictionData['days'], $predictionData['doctor_workloads'], $predictionData['queue_estimates']), 'Admin can retrieve appointment and queue forecasts');
+assertApi(($predictionData['data_quality']['confidence'] ?? '') === 'Insufficient data', 'Prediction API warns about sparse historical data');
+$r = httpRequest('/api/appointment_predictions.php', null, $doctor);
+assertApi($r['status'] === 403, 'Doctor cannot access admin predictions API');
+$r = httpRequest('/api/appointment_predictions.php', null, $patient);
+assertApi($r['status'] === 403, 'Patient cannot access admin predictions API');
+
 // Role-specific dashboard APIs.
 $r = httpRequest('/api/dashboard_metrics.php', null, $admin);
 $d = decoded($r);
