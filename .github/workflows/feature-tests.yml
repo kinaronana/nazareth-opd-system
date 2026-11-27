@@ -166,12 +166,11 @@ jobs:
               ftp.auth()
               ftp.login(user=username, passwd=password)
               ftp.prot_p()
-              response = ftp.pwd()
+              ftp.pwd()
               print("PASS: Explicit FTPS TLS negotiation succeeded.")
               print("PASS: FTP authentication succeeded.")
               print("PASS: Encrypted data-channel protection was accepted.")
               print("PASS: Read-only PWD command succeeded.")
-              print("Server working directory returned; value withheld.")
           except Exception as exc:
               message = str(exc)
               for secret in (password, username, host):
