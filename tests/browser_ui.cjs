@@ -42,6 +42,11 @@ async function expectPage(context, path, heading) {
     await predictions.getByText('Expected appointments', { exact: true }).waitFor();
     await predictions.locator('#forecastDays').selectOption('14');
     await predictions.getByText(/Predictions updated/).waitFor();
+    const centre = await expectPage(adminCtx, '/admin/intelligent_centre.php', 'AI Intelligent Centre');
+    await centre.getByText('AI-generated management summary', { exact: true }).waitFor();
+    await centre.getByText(/Operational estimates only/).waitFor();
+    await centre.getByRole('button', { name: /Refresh insights/ }).click();
+    await centre.getByText(/Updated/).waitFor();
     await adminCtx.close();
 
     const doctorCtx = await sessionContext(browser, 'Doctor', 2, { width: 1365, height: 900 });
@@ -116,6 +121,8 @@ async function expectPage(context, path, heading) {
     const denied = await deniedCtx.newPage();
     const deniedResponse = await denied.goto(base + '/admin/queue.php');
     assert.equal(deniedResponse.status(), 403, 'Patient is denied the admin queue page');
+    const deniedCentre = await denied.goto(base + '/admin/intelligent_centre.php');
+    assert.equal(deniedCentre.status(), 403, 'Patient is denied the admin Intelligent Centre page');
     await deniedCtx.close();
 
     console.log('All Playwright desktop/mobile dashboard, queue, patient assistant and doctor documentation workflow checks passed.');

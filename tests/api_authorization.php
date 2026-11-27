@@ -81,6 +81,17 @@ assertApi($r['status'] === 403, 'Doctor cannot access admin predictions API');
 $r = httpRequest('/api/appointment_predictions.php', null, $patient);
 assertApi($r['status'] === 403, 'Patient cannot access admin predictions API');
 
+// Admin-only Intelligent Centre exposes aggregate-only management data.
+$r = httpRequest('/api/admin_intelligent_centre.php', null, $admin);
+$intelligence = decoded($r);
+$intelligenceBody = (string)($r['body'] ?? '');
+assertApi($r['status'] === 200 && isset($intelligence['appointments']['total_today'], $intelligence['queue']['waiting'], $intelligence['alerts'], $intelligence['management_summary']), 'Admin can retrieve Intelligent Centre insights');
+assertApi(strpos($intelligenceBody, 'Fictional Patient One') === false && strpos($intelligenceBody, 'patient_id') === false && strpos($intelligenceBody, 'doctor_id') === false, 'Intelligent Centre contains no patient or doctor identifiers');
+$r = httpRequest('/api/admin_intelligent_centre.php', null, $doctor);
+assertApi($r['status'] === 403, 'Doctor cannot access Intelligent Centre API');
+$r = httpRequest('/api/admin_intelligent_centre.php', null, $patient);
+assertApi($r['status'] === 403, 'Patient cannot access Intelligent Centre API');
+
 // Role-specific dashboard APIs.
 $r = httpRequest('/api/dashboard_metrics.php', null, $admin);
 $d = decoded($r);

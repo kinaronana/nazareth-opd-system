@@ -149,3 +149,9 @@ $empty = buildAppointmentForecast([],[],$today,7);
 check($empty['summary']['expected_appointments']===0.0 && $empty['data_quality']['confidence']==='Insufficient data', 'forecast safely handles empty history');
 
 echo "All isolated MySQL integration checks passed.\n";
+
+require_once __DIR__ . '/../services/AdminIntelligenceService.php';
+$alerts=buildAdminOperationalAlerts(['appointments'=>['pending_today'=>12],'queue'=>['waiting'=>9],'data_quality'=>['queue_available'=>true]]);
+check(count($alerts)===2, 'admin intelligence creates deterministic backlog and queue alerts');
+$local=buildLocalAdminManagementSummary(['appointments'=>['total_today'=>5,'pending_today'=>1,'approved_today'=>2,'completed_today'=>2],'patient_activity'=>['unique_patients_7d'=>3],'queue'=>['waiting'=>2,'called'=>1,'in_consultation'=>0],'workload'=>['highest_doctor_appointments_today'=>4],'data_quality'=>['queue_available'=>true],'forecast'=>['horizon_days'=>7,'expected_appointments'=>8.5,'confidence'=>'Low']]);
+check(strpos($local,'5 appointments')!==false && strpos($local,'8.5 appointments')!==false, 'local management summary uses aggregates and labels forecasts');
