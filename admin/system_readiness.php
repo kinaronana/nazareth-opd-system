@@ -127,8 +127,10 @@ if ($method === 'POST') {
     // Persist the throttle before making the external request.
     $_SESSION['system_readiness_gemini_last_test'] = time();
     session_write_close();
-    $key = trim((string) (getenv('GEMINI_API_KEY') ?: ''));
-    $model = trim((string) (getenv('GEMINI_MODEL') ?: 'gemini-3.5-flash-lite'));
+    // Resolve from the production config as a final fallback. Do not rely
+    // solely on getenv(), which may be empty on shared-hosting SAPIs.
+    $key = trim((string) (getenv('GEMINI_API_KEY') ?: ($readinessProductionConfig['gemini_api_key'] ?? '')));
+    $model = trim((string) (getenv('GEMINI_MODEL') ?: ($readinessProductionConfig['gemini_model'] ?? 'gemini-3.5-flash-lite')));
     $gemini = ['ok' => false, 'status' => 'not_configured'];
     if ($key !== '' && function_exists('curl_init') && preg_match('/^[A-Za-z0-9._-]{1,100}$/', $model)) {
         $url = 'https://generativelanguage.googleapis.com/v1beta/models/' . rawurlencode($model) . ':generateContent';

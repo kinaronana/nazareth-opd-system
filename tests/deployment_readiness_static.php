@@ -68,6 +68,20 @@ readinessCheck(
         && strpos($readinessEndpoint, 'preg_match(\'/^[A-Za-z0-9._-]{1,100}$/\', $configuredGeminiModel)') !== false,
     'Gemini key presence and model validity are checked without returning secret values'
 );
+
+$databaseConfig = file_get_contents($root . '/config/database.php');
+readinessCheck(
+    strpos($databaseConfig, "trim((string) (getenv('GEMINI_API_KEY') ?: '')) === ''") !== false
+        && strpos($databaseConfig, "trim((string) (getenv('GEMINI_MODEL') ?: '')) === ''") !== false
+        && strpos($databaseConfig, "putenv('GEMINI_API_KEY=' . $productionConfig['gemini_api_key'])") !== false
+        && strpos($databaseConfig, "putenv('GEMINI_MODEL=' . $productionConfig['gemini_model'])") !== false,
+    'empty or unset Gemini environment variables fall back to populated production configuration'
+);
+readinessCheck(
+    strpos($readinessEndpoint, "getenv('GEMINI_API_KEY') ?: (\$readinessProductionConfig['gemini_api_key'] ?? '')") !== false
+        && strpos($readinessEndpoint, "getenv('GEMINI_MODEL') ?: (\$readinessProductionConfig['gemini_model'] ?? 'gemini-3.5-flash-lite')") !== false,
+    'live Gemini POST resolves key and model from production configuration when environment values are empty'
+);
 readinessCheck(
     strpos($readinessEndpoint, '$localFailed = array_filter($checks') !== false
         && strpos($readinessEndpoint, '$localReady = !$localFailed;') !== false

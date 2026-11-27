@@ -50,10 +50,12 @@ if (in_array('', $settings, true)) {
 }
 
 // Production secrets are read server-side only; never expose them to browser code.
-if (getenv('GEMINI_API_KEY') === false && !empty($productionConfig['gemini_api_key'])) {
+// Some shared-hosting SAPIs expose unset variables as empty strings rather than
+// false. Treat both forms as missing so the generated production config is used.
+if (trim((string) (getenv('GEMINI_API_KEY') ?: '')) === '' && !empty($productionConfig['gemini_api_key'])) {
     putenv('GEMINI_API_KEY=' . $productionConfig['gemini_api_key']);
 }
-if (getenv('GEMINI_MODEL') === false && !empty($productionConfig['gemini_model'])) {
+if (trim((string) (getenv('GEMINI_MODEL') ?: '')) === '' && !empty($productionConfig['gemini_model'])) {
     putenv('GEMINI_MODEL=' . $productionConfig['gemini_model']);
 }
 
