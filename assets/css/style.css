@@ -165,3 +165,18 @@ body,body.bg-light{color:var(--opd-ink);background-color:#f7fbfd!important;backg
 .opd-chart-wrap.opd-chart-doughnut{height:270px;max-width:340px;margin:0 auto}
 .opd-analytics h5{color:#234252}
 @media(max-width:767.98px){.opd-chart-wrap{height:230px}.opd-chart-wrap.opd-chart-doughnut{height:245px}.opd-analytics .card{padding:1.1rem!important}}
+
+
+/* Sign-in page only: use the existing Nazareth blue/teal palette over the doctors photo. */
+.auth-shell .auth-hero {
+  background:
+    linear-gradient(135deg,
+      rgba(34,184,189,.84) 0%,
+      rgba(23,111,158,.88) 48%,
+      rgba(18,59,99,.92) 100%),
+    url("/assets/images/login-doctors.svg") center center / cover no-repeat !important;
+}
+.auth-shell .auth-hero::before,
+.auth-shell .auth-hero::after {
+  background: rgba(255,255,255,.045);
+}
