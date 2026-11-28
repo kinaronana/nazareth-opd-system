@@ -3,10 +3,10 @@ name: Feature Branch Tests
 on:
   push:
     branches:
-      - feature/intelligent-opd-platform
+      - 'feature/**'
   pull_request:
     branches:
-      - feature/intelligent-opd-platform
+      - main
   workflow_dispatch:
 
 permissions:
