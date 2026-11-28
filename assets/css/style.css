@@ -172,7 +172,7 @@ body,body.bg-light{color:var(--opd-ink);background-color:#f7fbfd!important;backg
   background:
     linear-gradient(135deg,
       rgba(34,184,189,.84) 0%,
-      rgba(23,111,158,.88) 48%,
+      rgba(23,111,158,.88) 46%,
       rgba(18,59,99,.92) 100%),
     url("/assets/images/login-doctors.svg") center center / cover no-repeat !important;
 }
