@@ -10,7 +10,7 @@ require_once __DIR__ . '/../includes/header.php'; require_once __DIR__ . '/../in
 ?>
 <div class="container my-5">
  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4"><div><h2 class="fw-bold text-primary">Doctor AI Documentation Assistant</h2><p class="text-muted mb-0">Prepare structured drafts from clinician-entered notes and assigned appointment history.</p></div><span class="badge text-bg-warning">Doctor review required</span></div>
- <div class="alert alert-info">School-project demonstration using fictional records only. Do not enter real patient information. AI output is an unverified draft, not a diagnosis or treatment recommendation. Review and edit every draft before approval.</div>
+ <div class="alert alert-info">Use fictional records only. Do not enter real patient information. AI output is an unverified draft, not a diagnosis or treatment recommendation. Review and edit every draft before approval.</div>
  <div class="card border-0 shadow-sm p-4 mb-4">
   <label class="form-label fw-semibold" for="appointmentSelect">Assigned appointment</label>
   <select id="appointmentSelect" class="form-select"><option value="">Choose a patient appointment</option><?php foreach($appointments as $a): ?><option value="<?php echo (int)$a['appointment_id']; ?>"><?php echo htmlspecialchars($a['full_name'].' — '.$a['appointment_date'].' '.$a['appointment_time']); ?></option><?php endforeach; ?></select>
@@ -24,7 +24,7 @@ require_once __DIR__ . '/../includes/header.php'; require_once __DIR__ . '/../in
  <div id="draftPanel" class="card border-0 shadow-sm p-4 mt-4" hidden>
   <h5 class="fw-bold">Draft for clinician review</h5><textarea id="draftText" class="form-control mb-3" rows="10" maxlength="10000"></textarea>
   <div class="d-flex flex-wrap gap-2"><button id="saveReview" class="btn btn-outline-primary">Save reviewed edits</button><button id="approveDraft" class="btn btn-success">Approve draft</button></div>
-  <p class="small text-muted mt-3 mb-0">Approval records your review in the audit log. This prototype does not create prescriptions or treatment orders.</p>
+  <p class="small text-muted mt-3 mb-0">Approval records your review in the audit log. This assistant does not create prescriptions or treatment orders.</p>
  </div>
 </div>
 <script>
