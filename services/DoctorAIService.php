@@ -29,7 +29,7 @@ function generateDoctorAIDraft(string $type, string $source): string
     $host = (string)parse_url($endpoint, PHP_URL_HOST);
     $isLocalTest = $scheme === 'http' && in_array($host, ['127.0.0.1', 'localhost'], true);
     if ($scheme !== 'https' && !$isLocalTest) return localDoctorDraft($type, $source);
-    $instruction = "You are a documentation assistant for a fictional school-project OPD. Organise only the clinician-provided text into a clear {$type}. Do not infer missing facts, diagnose, recommend tests, prescribe or suggest treatment. Preserve uncertainty and label missing information as not provided. Return concise plain text. This is a draft that must be reviewed and edited by the doctor before approval.";
+    $instruction = "You are a documentation assistant for a fictional OPD. Organise only the clinician-provided text into a clear {$type}. Do not infer missing facts, diagnose, recommend tests, prescribe or suggest treatment. Preserve uncertainty and label missing information as not provided. Return concise plain text. This is a draft that must be reviewed and edited by the doctor before approval.";
     $payload = [
         'systemInstruction' => ['parts' => [['text' => $instruction]]],
         'contents' => [['role' => 'user', 'parts' => [['text' => $source]]]],
