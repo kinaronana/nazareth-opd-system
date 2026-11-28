@@ -29,7 +29,7 @@ if ($path === '/__test/gemini') {
     $contents = is_array($payload) ? ($payload['contents'] ?? []) : [];
     $system = (string)($payload['systemInstruction']['parts'][0]['text'] ?? '');
     $isPatientAssistantPrompt = strpos($system, 'Never diagnose') !== false;
-    $isDoctorDocumentationPrompt = strpos($system, 'documentation assistant for a fictional school-project OPD') !== false
+    $isDoctorDocumentationPrompt = strpos($system, 'documentation assistant for a fictional OPD') !== false
         && strpos($system, 'Do not infer missing facts, diagnose') !== false;
     if (!is_array($contents) || !$contents || (!$isPatientAssistantPrompt && !$isDoctorDocumentationPrompt)) {
         http_response_code(400); echo json_encode(['error' => ['message' => 'Invalid mock request payload']]); exit;
@@ -49,7 +49,7 @@ if ($path === '/__test/gemini') {
             ? 'You previously asked how to book an appointment. Choose Book Appointment from the patient menu.'
             : (stripos($allText, 'book an appointment') !== false
                 ? 'To book an appointment, sign in and choose Book Appointment from the patient menu.'
-                : 'I can help you navigate the patient portal. Use fictional details only in this school project.');
+                : 'I can help you navigate the patient portal. Use fictional details only.');
     }
     echo json_encode(['candidates' => [['finishReason' => 'STOP', 'content' => ['parts' => [['text' => $reply]]]]]]);
     exit;
