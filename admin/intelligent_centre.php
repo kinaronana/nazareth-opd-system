@@ -7,7 +7,7 @@ require_once __DIR__ . '/../includes/navbar.php';
 ?>
 <div class="container my-5">
  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4"><div><h2 class="fw-bold text-primary"><i class="fa-solid fa-brain me-2"></i>AI Intelligent Centre</h2><p class="text-secondary mb-0">A consolidated view of outpatient operations, queue activity and management insights.</p></div><button class="btn btn-outline-primary" id="refreshIntelligence" type="button"><i class="fa-solid fa-rotate me-1"></i>Refresh insights</button></div>
- <div class="alert alert-info"><strong>Operational estimates only.</strong> AI-generated management summaries support administrative review; they are not clinical advice and do not make patient-care decisions. This is a school-project demonstration using fictional records.</div>
+ <div class="alert alert-info"><strong>Operational estimates only.</strong> AI-generated management summaries support administrative review; they are not clinical advice and do not make patient-care decisions.</div>
  <div id="intelligenceStatus" class="small text-muted mb-3" role="status" aria-live="polite">Loading operational intelligence…</div>
  <div class="row g-3 mb-4">
   <div class="col-6 col-lg-3"><div class="card p-3 h-100"><div class="small text-muted">Appointments today</div><div class="display-6 fw-bold" id="totalToday">—</div></div></div>
